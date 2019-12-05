@@ -128,6 +128,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\threading\dcp.cpp" />
+    <ClCompile Include="src\threading\serializer.cpp" />
+    <ClCompile Include="src\threading\node.cpp" />
+    <ClCompile Include="src\threading\serializerUtility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\threading\dcp.h" />
+    <ClInclude Include="src\threading\serializerUtility.h" />
+    <ClInclude Include="src\threading\serializer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
