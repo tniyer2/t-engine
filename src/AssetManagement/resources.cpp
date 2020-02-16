@@ -1,0 +1,4 @@
+
+namespace TEngine { namespace AssetManagement {
+
+}}

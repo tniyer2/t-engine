@@ -18,27 +18,21 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\threading\dcp.cpp">
+    <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\threading\node.cpp">
+    <ClCompile Include="src\Graphics\window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\threading\serializer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\threading\serializerUtility.cpp">
+    <ClCompile Include="src\AssetManagement\resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\threading\dcp.h">
+    <ClInclude Include="src\Graphics\window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\threading\serializer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\threading\serializerUtility.h">
+    <ClInclude Include="src\AssetManagement\resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

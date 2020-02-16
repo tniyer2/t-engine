@@ -127,16 +127,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AssetManagement\resources.cpp" />
+    <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\Graphics\window.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\threading\dcp.cpp" />
-    <ClCompile Include="src\threading\serializer.cpp" />
-    <ClCompile Include="src\threading\node.cpp" />
-    <ClCompile Include="src\threading\serializerUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\threading\dcp.h" />
-    <ClInclude Include="src\threading\serializerUtility.h" />
-    <ClInclude Include="src\threading\serializer.h" />
+    <ClInclude Include="src\AssetManagement\resources.h" />
+    <ClInclude Include="src\Graphics\window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
