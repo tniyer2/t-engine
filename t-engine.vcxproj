@@ -93,7 +93,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp/assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -127,13 +127,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\AssetManagement\resources.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\Graphics\stb_image_def.cpp" />
     <ClCompile Include="src\Graphics\window.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\AssetManagement\resources.h" />
+    <ClInclude Include="include\stb_image.h" />
+    <ClInclude Include="src\Graphics\camera.h" />
+    <ClInclude Include="src\Graphics\mesh.h" />
+    <ClInclude Include="src\Graphics\model.h" />
+    <ClInclude Include="src\Graphics\shader.h" />
     <ClInclude Include="src\Graphics\window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

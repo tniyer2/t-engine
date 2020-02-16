@@ -1,6 +1,6 @@
 
 #include "window.h"
-#include <fstream>
+#include <iostream>
 
 namespace TEngine { namespace Graphics {
 
@@ -9,7 +9,7 @@ Window::Window(int width, int height, const char* title)
 
 	m_windowPtr = glfwCreateWindow(m_width, m_height, m_title, NULL, NULL);
 	if (m_windowPtr == NULL) {
-		fprintf(stderr, "Could not create window.");
+		std::cerr << "Could not create window.";
 		return;
 	}
 
@@ -18,7 +18,7 @@ Window::Window(int width, int height, const char* title)
 	glfwMakeContextCurrent(m_windowPtr);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		fprintf(stderr, "Could not load glad.\n");
+		std::cerr << "Could not load glad.\n";
 		return;
 	}
 
@@ -115,5 +115,4 @@ void onWindowResize(GLFWwindow* windowPtr, int width, int height) {
 	window->m_height = height;
 	window->setViewport();
 }
-
 }}

@@ -24,7 +24,7 @@
     <ClCompile Include="src\Graphics\window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\AssetManagement\resources.cpp">
+    <ClCompile Include="src\Graphics\stb_image_def.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,7 +32,19 @@
     <ClInclude Include="src\Graphics\window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\AssetManagement\resources.h">
+    <ClInclude Include="src\Graphics\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

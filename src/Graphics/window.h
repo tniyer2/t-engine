@@ -3,7 +3,11 @@
 #include <GLFW/glfw3.h>
 
 namespace TEngine { namespace Graphics {
-enum class ScreenMode { windowed, fullScreen, windowedFullScreen };
+enum class ScreenMode {
+	windowed,
+	fullScreen,
+	windowedFullScreen
+};
 
 class Window {
 	private:
