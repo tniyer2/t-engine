@@ -2,12 +2,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <iostream>
-#include <string>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <string>
+#include <iostream>
 
 #include "Graphics/window.h"
 #include "Graphics/shader.h"
@@ -17,7 +17,18 @@
 using namespace TEngine::Graphics;
 
 void error_callback(int error, const char* description) {
-	std::cerr << "GLFW Error: " + string(description) + "\n";
+	cerr << "GLFW Error: " + string(description) + "\n";
+}
+
+void printVector(glm::vec4 v) {
+	cout << "(" + to_string(v.x) + ", " + to_string(v.y) + ", " + to_string(v.z) + ", " + to_string(v.w) + ")\n";
+}
+
+void printMatrix(glm::mat4 matrix) {
+	for (unsigned int i = 0; i < 4; i++) {
+		printVector(matrix[i]);
+	}
+	cout << "\n";
 }
 
 int main() {
@@ -25,29 +36,33 @@ int main() {
 
 	if (!glfwInit()) {
 		glfwTerminate();
-		std:cerr << "Could not initialize GLFW.\n";
+		cerr << "Could not initialize GLFW.\n";
 		return 1;
 	}
 
-	Window window(640, 480, "A new window");
+	Window window(640, 480, "A new window", Camera(glm::vec3(0, 0, 3.0f)));
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
 
-	Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 	Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
-	const std::string& modelPath = "resources/objects/nanosuit/nanosuit.obj";
+	const string& modelPath = "resources/objects/nanosuit/nanosuit.obj";
 	Model ourModel(modelPath);
 
-	while (!window.shouldClose()) {
-		window.clear();
+	float deltaTime = 0.0f;
+	float lastFrame = 0.0f;
 
-		// don't forget to enable shader before setting uniforms
+	while (!window.shouldClose()) {
+		float currentFrame = (float)glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		window.clear();
 		ourShader.use();
 
 		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)window.getWidth() / (float)window.getHeight(), 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 projection = glm::perspective(glm::radians(window.camera.zoom), (float)window.getWidth() / (float)window.getHeight(), 0.1f, 100.0f);
+		glm::mat4 view = window.camera.getViewMatrix();
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
 
@@ -56,9 +71,9 @@ int main() {
 		model = glm::translate(model, glm::vec3(0.0f, -1.1f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
 		ourShader.setMat4("model", model);
-		ourModel.Draw(ourShader);
+		ourModel.draw(ourShader);
 
-		window.update();
+		window.update(deltaTime);
 	}
 
 	return 0;

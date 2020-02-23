@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "camera.h"
+
 namespace TEngine { namespace Graphics {
 enum class ScreenMode {
 	windowed,
@@ -18,11 +20,21 @@ class Window {
 		GLFWwindow* m_windowPtr = NULL;
 		bool m_isOpen = false;
 
-		friend void onWindowResize(GLFWwindow*, int, int);
+		double m_mouseX = 0, m_mouseY = 0;
+		bool m_firstMouse = true;
+
+		friend void resizeCallback(GLFWwindow*, int, int);
+		friend void mouseCallback(GLFWwindow*, double, double);
+		friend void scrollCallback(GLFWwindow*, double, double);
+
 		void setViewport();
 		void resize();
+
+		void processInput(float);
 	public:
-		Window(int, int, const char*);
+		Camera camera;
+
+		Window(int, int, const char*, Camera);
 		~Window();
 
 		inline int getWidth() { return m_width; }
@@ -39,9 +51,11 @@ class Window {
 
 		bool shouldClose();
 		void clear();
-		void update();
+		void update(float);
 		void close();
 	};
 
-void onWindowResize(GLFWwindow*, int, int);
+void resizeCallback(GLFWwindow*, int, int);
+void mouseCallback(GLFWwindow*, double, double);
+void scrollCallback(GLFWwindow*, double, double);
 }}

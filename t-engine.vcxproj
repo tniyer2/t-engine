@@ -90,6 +90,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <DisableSpecificWarnings>26495;26812;</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,6 +129,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\Graphics\camera.cpp" />
+    <ClCompile Include="src\Graphics\mesh.cpp" />
+    <ClCompile Include="src\Graphics\model.cpp" />
+    <ClCompile Include="src\Graphics\shader.cpp" />
     <ClCompile Include="src\Graphics\stb_image_def.cpp" />
     <ClCompile Include="src\Graphics\window.cpp" />
     <ClCompile Include="src\main.cpp" />
