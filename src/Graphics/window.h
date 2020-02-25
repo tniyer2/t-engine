@@ -1,8 +1,15 @@
 
+#ifndef WINDOW_H
+#define WINDOW_H
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
+#include "../input/input.h"
 #include "camera.h"
+
+using TEngine::InputNS::Input;
 
 namespace TEngine { namespace Graphics {
 enum class ScreenMode {
@@ -20,12 +27,14 @@ class Window {
 		GLFWwindow* m_windowPtr = NULL;
 		bool m_isOpen = false;
 
-		double m_mouseX = 0, m_mouseY = 0;
+		Input& m_input;
+		double m_mouseX, m_mouseY;
 		bool m_firstMouse = true;
 
-		friend void resizeCallback(GLFWwindow*, int, int);
-		friend void mouseCallback(GLFWwindow*, double, double);
-		friend void scrollCallback(GLFWwindow*, double, double);
+		friend void resize_callback(GLFWwindow*, int, int);
+		friend void key_callback(GLFWwindow*, int, int, int, int);
+		friend void mouse_callback(GLFWwindow*, double, double);
+		friend void scroll_callback(GLFWwindow*, double, double);
 
 		void setViewport();
 		void resize();
@@ -55,7 +64,9 @@ class Window {
 		void close();
 	};
 
-void resizeCallback(GLFWwindow*, int, int);
-void mouseCallback(GLFWwindow*, double, double);
-void scrollCallback(GLFWwindow*, double, double);
+void resize_callback(GLFWwindow*, int, int);
+void key_callback(GLFWwindow*, int, int, int, int);
+void mouse_callback(GLFWwindow*, double, double);
+void scroll_callback(GLFWwindow*, double, double);
 }}
+#endif

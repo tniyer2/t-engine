@@ -1,9 +1,13 @@
 
 #include "window.h"
 
+using TEngine::InputNS::KeyState;
+
 namespace TEngine { namespace Graphics {
 Window::Window(int width, int height, const char* title, Camera cam)
-	: m_width(width), m_height(height), m_title(title), camera(cam) {
+	: m_width(width), m_height(height),
+	m_mouseX(width/2), m_mouseY(height/2),
+	m_title(title), m_input(Input::getInstance()), camera(cam) {
 
 	m_windowPtr = glfwCreateWindow(m_width, m_height, m_title, NULL, NULL);
 	if (m_windowPtr == NULL) {
@@ -11,12 +15,15 @@ Window::Window(int width, int height, const char* title, Camera cam)
 		return;
 	}
 
+	// Set callbacks and Activate
 	glfwSetWindowUserPointer(m_windowPtr, this);
-	glfwSetWindowSizeCallback(m_windowPtr, resizeCallback);
-	glfwSetCursorPosCallback(m_windowPtr, mouseCallback);
-	glfwSetScrollCallback(m_windowPtr, scrollCallback);
+	glfwSetWindowSizeCallback(m_windowPtr, resize_callback);
+	glfwSetKeyCallback(m_windowPtr, key_callback);
+	glfwSetCursorPosCallback(m_windowPtr, mouse_callback);
+	glfwSetScrollCallback(m_windowPtr, scroll_callback);
 	glfwMakeContextCurrent(m_windowPtr);
 
+	// Load OpenGL function pointers
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Could not load glad.\n";
 		return;
@@ -95,26 +102,27 @@ void Window::clear() {
 void Window::update(float deltaTime) {
 	if (m_isOpen) {
 		glfwSwapBuffers(m_windowPtr);
+		m_input.clear();
 		glfwPollEvents();
 		processInput(deltaTime);
 	}
 }
 
 void Window::processInput(float deltaTime) {
-	if (glfwGetKey(m_windowPtr, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+	if (m_input.isKeyDown("escape")) {
 		glfwSetWindowShouldClose(m_windowPtr, true);
 	}
 
-	if (glfwGetKey(m_windowPtr, GLFW_KEY_W) == GLFW_PRESS) {
+	if (m_input.isKeyDown("w")) {
 		camera.processKeyboard(Camera_Movement::FORWARD, deltaTime);
 	}
-	if (glfwGetKey(m_windowPtr, GLFW_KEY_S) == GLFW_PRESS) {
+	if (m_input.isKeyDown("s")) {
 		camera.processKeyboard(Camera_Movement::BACKWARD, deltaTime);
 	}
-	if (glfwGetKey(m_windowPtr, GLFW_KEY_A) == GLFW_PRESS) {
+	if (m_input.isKeyDown("a")) {
 		camera.processKeyboard(Camera_Movement::LEFT, deltaTime);
 	}
-	if (glfwGetKey(m_windowPtr, GLFW_KEY_D) == GLFW_PRESS) {
+	if (m_input.isKeyDown("d")) {
 		camera.processKeyboard(Camera_Movement::RIGHT, deltaTime);
 	}
 }
@@ -127,14 +135,19 @@ Window::~Window() {
 	glfwDestroyWindow(m_windowPtr);
 }
 
-void resizeCallback(GLFWwindow* windowPtr, int width, int height) {
+void resize_callback(GLFWwindow* windowPtr, int width, int height) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->m_width = width;
 	window->m_height = height;
 	window->setViewport();
 }
 
-void mouseCallback(GLFWwindow* windowPtr, double xpos, double ypos) {
+void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
+	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
+	window->m_input.pushKeyEvent(key, scancode, action, mods);
+}
+
+void mouse_callback(GLFWwindow* windowPtr, double xpos, double ypos) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	if (window->m_firstMouse) {
 		window->m_mouseX = xpos;
@@ -151,7 +164,7 @@ void mouseCallback(GLFWwindow* windowPtr, double xpos, double ypos) {
 	window->camera.processMouseMovement(xoffset, yoffset);
 }
 
-void scrollCallback(GLFWwindow* windowPtr, double xoffset, double yoffset) {
+void scroll_callback(GLFWwindow* windowPtr, double xoffset, double yoffset) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->camera.processMouseScroll(yoffset);
 }

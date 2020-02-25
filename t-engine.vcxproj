@@ -135,6 +135,7 @@
     <ClCompile Include="src\Graphics\shader.cpp" />
     <ClCompile Include="src\Graphics\stb_image_def.cpp" />
     <ClCompile Include="src\Graphics\window.cpp" />
+    <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +145,7 @@
     <ClInclude Include="src\Graphics\model.h" />
     <ClInclude Include="src\Graphics\shader.h" />
     <ClInclude Include="src\Graphics\window.h" />
+    <ClInclude Include="src\input\input.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

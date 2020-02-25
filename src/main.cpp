@@ -40,7 +40,7 @@ int main() {
 		return 1;
 	}
 
-	Window window(640, 480, "A new window", Camera(glm::vec3(0, 0, 3.0f)));
+	Window window(640, 480, "A new window", Camera(glm::mat4()));
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
@@ -55,6 +55,9 @@ int main() {
 	while (!window.shouldClose()) {
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
+		if (deltaTime < 1.0 / 60.0) {
+			continue;
+		}
 		lastFrame = currentFrame;
 
 		window.clear();
