@@ -12,34 +12,35 @@ using glm::mat4;
 using glm::vec3;
 
 namespace TEngine { namespace Graphics {
-enum class Camera_Movement {
-	FORWARD, BACKWARD, LEFT, RIGHT
-};
 
-const float SPEED = 10.0f;
-const float SENSITIVITY = 0.05f;
-const float ZOOM = 45.0f;
+enum class CameraMovement {
+	FORWARD,
+	BACKWARD,
+	LEFT,
+	RIGHT
+};
 
 class Camera {
 public:
-	float movementSpeed;
-	float mouseSensitivity;
-	float zoom;
+	float movementSpeed = 10.0f;
+	float mouseSensitivity = 0.05f;
+	float zoom = 45.0f;
 
+	Camera();
 	Camera(mat4);
 
-	mat4 getViewMatrix() {
-		return m_matrix;
-	}
-	vec3 getRight() { return normalize(m_matrix[0]); }
-	vec3 getUp() { return normalize(m_matrix[1]); }
-	vec3 getForward() { return normalize(m_matrix[2]); }
-	void processKeyboard(Camera_Movement, float);
+	inline mat4 getViewMatrix() { return m_matrix; }
+	inline vec3 getRight() { return normalize(m_matrix[0]); }
+	inline vec3 getUp() { return normalize(m_matrix[1]); }
+	inline vec3 getForward() { return normalize(m_matrix[2]); }
+
+	void processKeyboard(CameraMovement, float);
 	void processMouseMovement(float, float, GLboolean=true);
 	void processMouseScroll(float);
-
 private:
 	mat4 m_matrix;
+	float m_lastMouseX = -1;
+	float m_lastMouseY = -1;
 };
 }}
 #endif

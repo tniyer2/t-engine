@@ -1,14 +1,16 @@
 
+#include <GLFW/glfw3.h>
 #include "input.h"
 
-namespace TEngine { namespace InputNS {
+namespace TEngine { namespace NS_Input {
 
-array<int, 28> KEY_RANGES = {
+array<int, 31> KEY_RANGES = {
 	32, 39, -1, 44, 57, 59, 61, -1, 65, 93, 96, 161, 162, -1, 256, 269,
-	-1, 280, 284, -1, 290, 314, -1, 320, 336, -1, 340, 348
+	-1, 280, 284, -1, 290, 314, -1, 320, 336, -1, 340, 348,
+	-1, 400, 402 // first three mouse buttons
 };
 
-array<string, 95> KEY_TO_TEXT = {
+array<string, 98> KEY_TO_TEXT = {
 	"unknown", "\s", "'", ",", "-", ".", "/",
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 	";", "=",
@@ -25,7 +27,8 @@ array<string, 95> KEY_TO_TEXT = {
 	"print_screen", "pause",
 	"f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9",
 	"f10", "f11", "f12", "f13", "f14", "f15", "f16", "f17",
-	"f18", "f19", "f20", "f21", "f22", "f23", "f24", "f25"
+	"f18", "f19", "f20", "f21", "f22", "f23", "f24", "f25",
+	"mouse_left", "mouse_right", "mouse_middle"
 };
 
 KeyState translate_key_action(int action) {
@@ -76,7 +79,8 @@ Input::Input() {
 
 void Input::clear() {
 	m_keys.fill(-1);
-	m_events.clear();
+	m_keyEvents.clear();
+	m_scrollEvent = {};
 }
 
 void Input::pushKeyEvent(int key, int scancode, int action, int mods) {
@@ -85,8 +89,20 @@ void Input::pushKeyEvent(int key, int scancode, int action, int mods) {
 	string text = KEY_TO_TEXT[key];
 	KeyEvent e(key, state, mods, text);
 
-	m_events.push_back(e);
-	m_keys[key] = m_events.size() - 1;
+	m_keyEvents.push_back(e);
+	m_keys[key] = m_keyEvents.size() - 1;
+}
+
+void Input::pushMouseButtonEvent(int button, int action, int mods) {
+	pushKeyEvent(button, 0, action, mods);
+}
+
+void Input::pushMouseEvent(double xpos, double ypos) {
+	m_mouseEvent = { (float)xpos, (float)ypos };
+}
+
+void Input::pushScrollEvent(double xoffset, double yoffset) {
+	m_scrollEvent = { (float)xoffset, (float)yoffset };
 }
 
 KeyEvent Input::pollKey(string text) {
@@ -94,7 +110,7 @@ KeyEvent Input::pollKey(string text) {
 	if (key != 0) {
 		char index = m_keys[key];
 		if (index != -1) {
-			return m_events[index];
+			return m_keyEvents[index];
 		}
 	}
 	return KeyEvent(key);
@@ -104,4 +120,5 @@ bool Input::isKeyDown(string text) {
 	KeyEvent e = pollKey(text);
 	return e.state == KeyState::press || e.state == KeyState::repeat;
 }
+
 }}

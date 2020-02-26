@@ -2,27 +2,28 @@
 #include "camera.h";
 
 namespace TEngine { namespace Graphics {
-Camera::Camera(mat4 m)
-	: m_matrix(m), movementSpeed(SPEED),
-	mouseSensitivity(SENSITIVITY), zoom(ZOOM) {
-}
+Camera::Camera()
+	: m_matrix(mat4()) {}
 
-void Camera::processKeyboard(Camera_Movement direction, float deltaTime) {
+Camera::Camera(mat4 m)
+	: m_matrix(m) {}
+
+void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
 	float velocity = movementSpeed * deltaTime;
 	vec3 front = getForward();
 	vec3 right = getRight();
 	vec3 dirVec;
 	switch (direction) {
-		case Camera_Movement::FORWARD:
+		case CameraMovement::FORWARD:
 			dirVec = front;
 			break;
-		case Camera_Movement::BACKWARD:
+		case CameraMovement::BACKWARD:
 			dirVec = -front;
 			break;
-		case Camera_Movement::LEFT:
+		case CameraMovement::LEFT:
 			dirVec = -right;
 			break;
-		case Camera_Movement::RIGHT:
+		case CameraMovement::RIGHT:
 			dirVec = right;
 			break;
 		default:
@@ -31,7 +32,16 @@ void Camera::processKeyboard(Camera_Movement direction, float deltaTime) {
 	m_matrix = translate(m_matrix, dirVec * velocity);
 }
 
-void Camera::processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
+void Camera::processMouseMovement(float posx, float posy, GLboolean constrainPitch) {
+	if (m_lastMouseX == -1) {
+		m_lastMouseX = posx;
+		m_lastMouseY = posy;
+	}
+	float xoffset = posx - m_lastMouseX;
+	float yoffset = m_lastMouseY - posy;
+	m_lastMouseX = posx;
+	m_lastMouseY = posy;
+
 	xoffset *= mouseSensitivity;
 	yoffset *= mouseSensitivity;
 

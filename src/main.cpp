@@ -16,10 +16,6 @@
 
 using namespace TEngine::Graphics;
 
-void error_callback(int error, const char* description) {
-	cerr << "GLFW Error: " + string(description) + "\n";
-}
-
 void printVector(glm::vec4 v) {
 	cout << "(" + to_string(v.x) + ", " + to_string(v.y) + ", " + to_string(v.z) + ", " + to_string(v.w) + ")\n";
 }
@@ -32,15 +28,7 @@ void printMatrix(glm::mat4 matrix) {
 }
 
 int main() {
-	glfwSetErrorCallback(error_callback);
-
-	if (!glfwInit()) {
-		glfwTerminate();
-		cerr << "Could not initialize GLFW.\n";
-		return 1;
-	}
-
-	Window window(640, 480, "A new window", Camera(glm::mat4()));
+	Window& window = Window::getInstance();
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
