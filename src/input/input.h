@@ -66,10 +66,7 @@ map<string, int> get_text_translations();
 
 class Input {
 public:
-	static Input& getInstance() {
-		static Input instance;
-		return instance;
-	}
+	Input();
 
 	Input(const Input&) = delete;
 	void operator=(const Input&) = delete;
@@ -95,8 +92,6 @@ private:
 	map<string, int> m_textToKey; // Maps strings to (not GLFW) key codes.
 	MouseEvent m_mouseEvent;
 	ScrollEvent m_scrollEvent;
-
-	Input();
 };
 }}
 #endif

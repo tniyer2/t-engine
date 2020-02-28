@@ -1,18 +1,24 @@
 
 #include "camera.h";
+#include "window.h";
 
 namespace TEngine { namespace Graphics {
-Camera::Camera()
-	: m_matrix(mat4()) {}
+Camera::Camera() : m_matrix(mat4()) {}
 
-Camera::Camera(mat4 m)
-	: m_matrix(m) {}
+mat4 Camera::getPerspectiveMatrix() {
+	return glm::perspective(
+		glm::radians(zoom),
+		(float)window->getWidth() / (float)window->getHeight(),
+		0.1f,
+		100.0f);
+}
 
 void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
-	float velocity = movementSpeed * deltaTime;
-	vec3 front = getForward();
-	vec3 right = getRight();
-	vec3 dirVec;
+	float speed = movementSpeed * deltaTime;
+	mat4 m = inverse(getViewMatrix());
+	vec4 front = m * vec4(0, 0, 1, 0);
+	vec4 right = m * vec4(1, 0, 0, 0);
+	vec4 dirVec;
 	switch (direction) {
 		case CameraMovement::FORWARD:
 			dirVec = front;
@@ -21,15 +27,15 @@ void Camera::processKeyboard(CameraMovement direction, float deltaTime) {
 			dirVec = -front;
 			break;
 		case CameraMovement::LEFT:
-			dirVec = -right;
-			break;
-		case CameraMovement::RIGHT:
 			dirVec = right;
 			break;
+		case CameraMovement::RIGHT:
+			dirVec = -right;
+			break;
 		default:
-			dirVec = vec3(0, 0, 0);
+			dirVec = vec4();
 	}
-	m_matrix = translate(m_matrix, dirVec * velocity);
+	m_matrix = translate(m_matrix, vec3(dirVec * speed));
 }
 
 void Camera::processMouseMovement(float posx, float posy, GLboolean constrainPitch) {
@@ -45,7 +51,7 @@ void Camera::processMouseMovement(float posx, float posy, GLboolean constrainPit
 	xoffset *= mouseSensitivity;
 	yoffset *= mouseSensitivity;
 
-	m_matrix = rotate(m_matrix, xoffset, getUp());
+	m_matrix = rotate(m_matrix, xoffset, vec3(getUp()));
 	// m_matrix = rotate(m_matrix, yoffset, getRight());
 }
 

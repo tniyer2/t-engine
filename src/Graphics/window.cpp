@@ -7,7 +7,9 @@ using TEngine::NS_Input::ScrollEvent;
 
 namespace TEngine { namespace Graphics {
 
-Window::Window() : m_input(Input::getInstance()) {
+Window::Window() {
+	camera.window = this;
+
 	// Listen for glfw errors
 	glfwSetErrorCallback(error_callback);
 
@@ -116,42 +118,42 @@ void Window::clear() {
 void Window::update(float deltaTime) {
 	if (!m_isOpen) return;
 	glfwSwapBuffers(m_windowPtr);
-	m_input.clear();
+	input.clear();
 	glfwPollEvents();
 	processInput(deltaTime);
 }
 
 void Window::processInput(float deltaTime) {
-	if (m_input.isKeyDown("escape")) {
+	if (input.isKeyDown("escape")) {
 		glfwSetWindowShouldClose(m_windowPtr, true);
 	}
 
-	if (m_input.isKeyDown("w")) {
+	if (input.isKeyDown("w")) {
 		camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
 	}
-	if (m_input.isKeyDown("s")) {
+	if (input.isKeyDown("s")) {
 		camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
 	}
-	if (m_input.isKeyDown("a")) {
+	if (input.isKeyDown("a")) {
 		camera.processKeyboard(CameraMovement::LEFT, deltaTime);
 	}
-	if (m_input.isKeyDown("d")) {
+	if (input.isKeyDown("d")) {
 		camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
 	}
 
-	MouseEvent e = m_input.getMouseInfo();
+	MouseEvent e = input.getMouseInfo();
 	camera.processMouseMovement(e.posX, e.posY);
 
-	ScrollEvent e2 = m_input.getScrollInfo();
+	ScrollEvent e2 = input.getScrollInfo();
 	camera.processMouseScroll(e2.yoffset);
 
-	if (m_input.isKeyDown("mouse_left")) {
+	if (input.isKeyDown("mouse_left")) {
 		std::cout << "left clicking\n";
 	}
-	if (m_input.isKeyDown("mouse_right")) {
+	if (input.isKeyDown("mouse_right")) {
 		std::cout << "right clicking\n";
 	}
-	if (m_input.isKeyDown("mouse_middle")) {
+	if (input.isKeyDown("mouse_middle")) {
 		std::cout << "middle clicking\n";
 	}
 }
@@ -177,21 +179,21 @@ void resize_callback(GLFWwindow* windowPtr, int width, int height) {
 
 void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
-	window->m_input.pushKeyEvent(key, scancode, action, mods);
+	window->input.pushKeyEvent(key, scancode, action, mods);
 }
 
 void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
-	window->m_input.pushMouseButtonEvent(button, action, mods);
+	window->input.pushMouseButtonEvent(button, action, mods);
 }
 
 void mouse_callback(GLFWwindow* windowPtr, double xpos, double ypos) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
-	window->m_input.pushMouseEvent(xpos, ypos);
+	window->input.pushMouseEvent(xpos, ypos);
 }
 
 void scroll_callback(GLFWwindow* windowPtr, double xoffset, double yoffset) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
-	window->m_input.pushScrollEvent(xoffset, yoffset);
+	window->input.pushScrollEvent(xoffset, yoffset);
 }
 }}

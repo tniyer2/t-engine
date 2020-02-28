@@ -4,16 +4,18 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <iostream>
 
-#include "Graphics/window.h"
-#include "Graphics/shader.h"
-#include "Graphics/camera.h"
-#include "Graphics/model.h"
+#include "core/core.h"
+#include "graphics/renderer.h"
+#include "graphics/window.h"
+#include "graphics/shader.h"
+#include "graphics/camera.h"
+#include "graphics/model.h"
 
+using namespace TEngine::Core;
 using namespace TEngine::Graphics;
 
 void printVector(glm::vec4 v) {
@@ -28,18 +30,25 @@ void printMatrix(glm::mat4 matrix) {
 }
 
 int main() {
-	Window& window = Window::getInstance();
+	EntityManager gEntityManager;
+	ComponentManager gComponentManager;
+	Renderer gRenderer;
+	gEntityManager.startUp();
+	gComponentManager.startUp();
+	gRenderer.startUp();
+
+	gComponentManager.registerView<MeshComponent, MeshComponentView>(gRenderer.getView());
+
+	Window& window = gRenderer.getWindow();
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
 
-	Shader ourShader("shaders/shader.vs", "shaders/shader.fs");
-	const string& modelPath = "resources/objects/nanosuit/nanosuit.obj";
-	Model ourModel(modelPath);
+	Entity nanosuit = gEntityManager.createEntity();
+	gComponentManager.createComponent<MeshComponent>(nanosuit);
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
-
 	while (!window.shouldClose()) {
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -49,23 +58,12 @@ int main() {
 		lastFrame = currentFrame;
 
 		window.clear();
-		ourShader.use();
-
-		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(window.camera.zoom), (float)window.getWidth() / (float)window.getHeight(), 0.1f, 100.0f);
-		glm::mat4 view = window.camera.getViewMatrix();
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
-
-		// render the loaded model
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.1f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
-		ourShader.setMat4("model", model);
-		ourModel.draw(ourShader);
-
+		gRenderer.update(deltaTime);
 		window.update(deltaTime);
 	}
+
+	gComponentManager.shutDown();
+	gEntityManager.shutDown();
 
 	return 0;
 }

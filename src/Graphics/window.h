@@ -12,6 +12,7 @@
 using TEngine::NS_Input::Input;
 
 namespace TEngine { namespace Graphics {
+
 enum class ScreenMode {
 	windowed,
 	fullScreen,
@@ -19,37 +20,14 @@ enum class ScreenMode {
 };
 
 class Window {
-private:
-	int m_width = 640, m_height = 480;
-	const char* m_title = "TEngine";
-	ScreenMode m_screenMode = ScreenMode::windowed;
-
-	GLFWwindow* m_windowPtr = NULL;
-	bool m_isOpen = false;
-
-	Input& m_input;
-
+public:
 	Window();
 	~Window();
-
-	void resize();
-	void setViewport(); // @todo refactor, this is camera logic
-	void processInput(float); // @todo refactor, this is game logic
-
-	friend void resize_callback(GLFWwindow*, int, int);
-	friend void key_callback(GLFWwindow*, int, int, int, int);
-	friend void mouse_button_callback(GLFWwindow*, int, int, int);
-	friend void mouse_callback(GLFWwindow*, double, double);
-	friend void scroll_callback(GLFWwindow*, double, double);
-public:
-	static Window& getInstance() {
-		static Window instance;
-		return instance;
-	}
 
 	Window(const Window&) = delete;
 	void operator=(const Window&) = delete;
 
+	Input input;
 	Camera camera;
 
 	inline int getWidth() { return m_width; }
@@ -68,6 +46,23 @@ public:
 	void clear();
 	void update(float);
 	void close();
+private:
+	int m_width = 640, m_height = 480;
+	const char* m_title = "TEngine";
+	ScreenMode m_screenMode = ScreenMode::windowed;
+
+	GLFWwindow* m_windowPtr = NULL;
+	bool m_isOpen = false;
+
+	void resize();
+	void setViewport(); // @todo refactor, this is camera logic
+	void processInput(float); // @todo refactor, this is game logic
+
+	friend void resize_callback(GLFWwindow*, int, int);
+	friend void key_callback(GLFWwindow*, int, int, int, int);
+	friend void mouse_button_callback(GLFWwindow*, int, int, int);
+	friend void mouse_callback(GLFWwindow*, double, double);
+	friend void scroll_callback(GLFWwindow*, double, double);
 };
 
 void error_callback(int, const char*);
