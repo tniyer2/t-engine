@@ -10,9 +10,11 @@ bool Renderer::running = false;
 void Renderer::pStartUp() {
 	m_data = new RendererData();
 	m_data->shader = new Shader("shaders/shader.vs", "shaders/shader.fs");
+	m_view = new ComponentArray<MeshComponent>(m_data->components);
 }
 
 void Renderer::pShutDown() {
+	delete m_view;
 	delete m_data->shader;
 	delete m_data;
 }

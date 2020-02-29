@@ -37,15 +37,16 @@ int main() {
 	gComponentManager.startUp();
 	gRenderer.startUp();
 
-	gComponentManager.registerView<MeshComponent, MeshComponentView>(gRenderer.getView());
+	gComponentManager.registerView<MeshComponent>(gRenderer.getView());
 
 	Window& window = gRenderer.getWindow();
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
 
-	Entity nanosuit = gEntityManager.createEntity();
-	gComponentManager.createComponent<MeshComponent>(nanosuit);
+	Entity entity = gEntityManager.createEntity();
+	MeshComponent model(entity, "resources/objects/nanosuit/nanosuit.obj");
+	gComponentManager.createComponent<MeshComponent>(entity, model);
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;

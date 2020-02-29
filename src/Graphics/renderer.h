@@ -10,18 +10,18 @@ using std::string;
 using std::vector;
 
 using TEngine::Core::Entity;
-using TEngine::Core::AbstractComponent;
+using TEngine::Core::IComponent;
+using TEngine::Core::ComponentArray;
 
 #ifndef RENDERER_H
 #define RENDERER_H
 
 namespace TEngine { namespace Graphics {
 
-class MeshComponent : AbstractComponent {
+class MeshComponent : public IComponent {
 public:
 	Model model;
-
-	MeshComponent(Entity e, string path) : AbstractComponent(e), model(path) {}
+	MeshComponent(Entity e, string path) : IComponent(e), model(path) {}
 };
 
 class RendererData {
@@ -31,26 +31,9 @@ public:
 	vector<MeshComponent> components;
 };
 
-class MeshComponentView {
-public:
-	MeshComponentView(RendererData& data) : m_data(data) {}
-
-	MeshComponent& getComponent(Entity e) {
-		return m_data.components[e.id];
-	}
-
-	MeshComponent& createComponent(Entity e) {
-		MeshComponent comp(e, "resources/objects/nanosuit/nanosuit.obj");
-		m_data.components.push_back(comp);
-		return comp;
-	}
-private:
-	RendererData& m_data;
-};
-
 class Renderer {
 public:
-	Renderer() : m_view(*m_data) {}
+	Renderer() {}
 	~Renderer() {}
 
 	inline void startUp() {
@@ -73,11 +56,11 @@ public:
 	void operator=(const Renderer&) = delete;
 
 	inline Window& getWindow() { return m_data->window; }
-	inline MeshComponentView& getView() { return m_view; }
+	inline ComponentArray<MeshComponent>* getView() { return m_view; }
 private:
 	static bool running;
 	RendererData* m_data = nullptr;
-	MeshComponentView m_view;
+	ComponentArray<MeshComponent>* m_view;
 
 	void pStartUp();
 	void pShutDown();
