@@ -1,7 +1,6 @@
 
 #include "../core/core.h"
 #include "window.h"
-#include "shader.h"
 #include "model.h"
 
 #include <string>
@@ -20,47 +19,39 @@ namespace TEngine { namespace Graphics {
 
 class MeshComponent : public IComponent {
 public:
-	Model model;
-	MeshComponent(Entity e, string path) : IComponent(e), model(path) {}
-};
-
-class RendererData {
-public:
-	Window window;
-	Shader* shader = nullptr;
-	vector<MeshComponent> components;
+	Model* model;
+	MeshComponent() {}
 };
 
 class Renderer {
 public:
 	Renderer() {}
-	~Renderer() {}
 
 	inline void startUp() {
 		if (running) return;
 		running = true;
 		pStartUp();
 	}
-	inline void update(float deltaTime) {
-		if (!running) return;
-		pUpdate(deltaTime);
-
-	}
 	inline void shutDown() {
 		if (!running) return;
 		running = false;
 		pShutDown();
 	}
+	inline void update(float deltaTime) {
+		if (!running) return;
+		pUpdate(deltaTime);
+
+	}
 
 	Renderer(const Renderer&) = delete;
 	void operator=(const Renderer&) = delete;
 
-	inline Window& getWindow() { return m_data->window; }
-	inline ComponentArray<MeshComponent>* getView() { return m_view; }
+	inline Window& getWindow() { return *m_window; }
+	inline ComponentArray<MeshComponent>* getMeshComponents() { return m_meshComponents; }
 private:
 	static bool running;
-	RendererData* m_data = nullptr;
-	ComponentArray<MeshComponent>* m_view;
+	Window* m_window = nullptr;
+	ComponentArray<MeshComponent>* m_meshComponents = nullptr;
 
 	void pStartUp();
 	void pShutDown();

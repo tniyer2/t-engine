@@ -4,29 +4,30 @@
 
 #include <atomic>
 #include <unordered_map>
-using std::unordered_map;
+#include <map>
 #include <vector>
+
+using std::unordered_map;
+using std::map;
 using std::vector;
 
 namespace TEngine { namespace Core {
 
 struct Entity {
-	unsigned int id;
+	unsigned int id = 0;
 };
 
 class EntityManager {
 public:
 	EntityManager() {}
-	~EntityManager() {}
+	EntityManager(const EntityManager&) = delete;
+	void operator=(const EntityManager&) = delete;
 
 	void startUp() {}
 	void shutDown() {}
 
-	EntityManager(const EntityManager&) = delete;
-	void operator=(const EntityManager&) = delete;
-
 	Entity createEntity() {
-		return { m_entityIdCounter++ };
+		return { ++m_entityIdCounter };
 	}
 private:
 	unsigned int m_entityIdCounter = 0;
@@ -34,9 +35,7 @@ private:
 
 class IComponent {
 public:
-	IComponent(Entity e) : m_entity(e) {};
-private:
-	Entity m_entity;
+	Entity entity;
 };
 
 class IComponentArray {};
@@ -44,18 +43,20 @@ class IComponentArray {};
 template<typename T>
 class ComponentArray : public IComponentArray {
 public:
-	ComponentArray(vector<T>& data) : m_array(data) {}
+	ComponentArray() {}
 
-	T& getComponent(Entity e) {
-		return m_array[e.id];
+	T* getComponent(Entity e) {
+		return m_map[e.id];
 	}
 
-	T& createComponent(Entity e, T comp) {
-		m_array.push_back(comp);
-		return comp;
+	T* addComponent(Entity e) {
+		/*
+		comp->entity = e;
+		m_map[e.id] = comp;
+		*/
 	}
 private:
-	vector<T>& m_array;
+	map<int, void*> m_map;
 };
 
 class ComponentManager {
@@ -70,18 +71,18 @@ public:
 	void operator=(const ComponentManager&) = delete;
 
 	template<typename T>
-	void registerView(IComponentArray* view) {
-		m_map[getTypeId<T>()] = view;
+	void registerComponentArray(IComponentArray* arr) {
+		m_map[getTypeId<T>()] = arr;
 	}
 
 	template<typename T>
-	T& getComponent(Entity e) {
+	T* getComponent(Entity e) {
 		return getComponentArray<T>()->getComponent(e);
 	}
 
 	template<typename T>
-	T& createComponent(Entity e, T comp) {
-		return getComponentArray<T>()->createComponent(e, comp);
+	T* setComponent(Entity e) {
+		return getComponentArray<T>()->setComponent(e);
 	}
 private:
 	static std::atomic_int typeIdCounter;
@@ -100,3 +101,4 @@ private:
 };
 }}
 #endif
+ 

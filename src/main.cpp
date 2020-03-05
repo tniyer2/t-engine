@@ -7,8 +7,10 @@
 
 #include <string>
 #include <iostream>
+#include <chrono>
 
 #include "core/core.h"
+#include "core/memory.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
 #include "graphics/shader.h"
@@ -29,6 +31,18 @@ void printMatrix(glm::mat4 matrix) {
 	cout << "\n";
 }
 
+struct A {
+	float a, b, c, d;
+};
+
+string printA(A a) {
+	return
+		to_string(a.a) + " " +
+		to_string(a.b) + " " +
+		to_string(a.c) + " " +
+		to_string(a.d);
+}
+
 int main() {
 	EntityManager gEntityManager;
 	ComponentManager gComponentManager;
@@ -37,16 +51,34 @@ int main() {
 	gComponentManager.startUp();
 	gRenderer.startUp();
 
-	gComponentManager.registerView<MeshComponent>(gRenderer.getView());
+	gComponentManager.registerComponentArray<MeshComponent>(gRenderer.getMeshComponents());
 
 	Window& window = gRenderer.getWindow();
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
 
+	RootAllocator gRootAllocator;
+	PoolAllocator<A> pool(gRootAllocator);
+	float a = glfwGetTime();
+
+	size_t l = 10000;
+	pool.reserve(l);
+	// pool.reserve(2);
+	for (unsigned int i = 0; i < l; ++i) {
+		A* ptr = pool.getBlock();
+		ptr = new (ptr) A{ (float)i, 2, 3, 4 };
+		// cout << i << ": " << printA(*ptr) << "\n";
+	}
+
+	cout << "time: " << glfwGetTime() - a << "\n";
+
+	/*
 	Entity entity = gEntityManager.createEntity();
-	MeshComponent model(entity, "resources/objects/nanosuit/nanosuit.obj");
-	gComponentManager.createComponent<MeshComponent>(entity, model);
+	Model model("resources/objects/nanosuit/nanosuit.obj");
+	MeshComponent* comp = gComponentManager.setComponent<MeshComponent>(entity);
+	comp->model = model;
+	*/
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;

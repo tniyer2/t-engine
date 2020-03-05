@@ -91,6 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <DisableSpecificWarnings>26495;26812;</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\core\core.cpp" />
+    <ClCompile Include="src\core\memory.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Graphics\camera.cpp" />
     <ClCompile Include="src\Graphics\mesh.cpp" />
@@ -143,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="include\stb_image.h" />
     <ClInclude Include="src\core\core.h" />
+    <ClInclude Include="src\core\memory.h" />
     <ClInclude Include="src\Graphics\camera.h" />
     <ClInclude Include="src\Graphics\mesh.h" />
     <ClInclude Include="src\Graphics\model.h" />

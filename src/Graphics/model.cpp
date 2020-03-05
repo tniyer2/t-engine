@@ -2,6 +2,7 @@
 #include "model.h";
 
 namespace TEngine { namespace Graphics {
+
 Model::Model(string const& path, bool gamma)
 	: gammaCorrection(gamma) {
 	loadModel(path);
@@ -40,7 +41,6 @@ void Model::processNode(aiNode* node, const aiScene* scene) {
 	for (unsigned int i = 0; i < node->mNumChildren; i++) {
 		processNode(node->mChildren[i], scene);
 	}
-
 }
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
