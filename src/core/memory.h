@@ -82,12 +82,19 @@ namespace TEngine { namespace Core {
 	};
 
 	template<typename T>
+	struct PoolCache {
+		PoolHeader<T>* ptr = nullptr;
+		size_t index = 0;
+	};
+
+	template<typename T>
 	class PoolAllocator : public IDerivedAllocator {
 	public:
 		constexpr static size_t BLOCK_SIZE = sizeof(T);
 		inline const static size_t HEADER_SIZE = align(sizeof(PoolHeader<T>), ALIGN_SIZE);
 
 		PoolAllocator(IRootAllocator& a) : IDerivedAllocator(a) {}
+
 		~PoolAllocator() {
 			PoolHeader<T>* cur = m_startPtr;
 			while (true) {
@@ -99,49 +106,59 @@ namespace TEngine { namespace Core {
 		}
 
 		bool reserve(size_t numBlocks) {
+			if (numBlocks == -1) return false;
+
 			size_t size = HEADER_SIZE + align(numBlocks * BLOCK_SIZE, ALIGN_SIZE);
 			void* ptr = m_allocator.allocate(size);
 			if (ptr == nullptr) return false;
 
-			T* blockPtr = (T*)(((word_t)ptr) + HEADER_SIZE);
+			T* blockPtr = (T*)((word_t)ptr + HEADER_SIZE);
 			PoolHeader<T>* headerPtr = new (ptr) PoolHeader<T>(blockPtr, numBlocks);
+
 			if (m_startPtr == nullptr) {
 				m_startPtr = headerPtr;
 				m_endPtr = headerPtr;
+				m_used.ptr = headerPtr;
 			}
 			else {
 				m_endPtr->next = headerPtr;
 				headerPtr->next = m_startPtr;
 				m_endPtr = headerPtr;
 			}
+
 			return true;
 		}
 
 		T* getBlock() {
-			if (m_startPtr == nullptr) return nullptr;
+			if (m_used.ptr == nullptr) return nullptr;
 
-			PoolHeader<T>* cur = m_startPtr;
 			while (true) {
-				T* block = getBlockInPool(cur);
-				if (block != nullptr) {
-					return block;
+				size_t index = getFreeBlockIndex(m_used.ptr);
+				if (index != -1) {
+					// free block found
+					m_used.index = index / 8;
+					return &(m_used.ptr->arrBlocks[index]);
 				}
-				else if (cur == m_endPtr) {
+				else if (m_used.ptr == m_endPtr) {
+					// no free block found
+					m_used = {};
 					return nullptr;
 				}
 				else {
-					cur = cur->next;
+					// continue searching next pool
+					m_used = { m_used.ptr->next, 0 };
 				}
 			}
 		}
 
 		bool freeBlock(T* block) {
 			if (m_startPtr == nullptr) return false;
+
 			PoolHeader<T>* cur = m_startPtr;
 			while (true) {
 				size_t index = block - cur->arrBlocks;
-				if (index <= cur->numBlocks) {
-					cur->used[index / 8] &= ~(1 << (index % 8));
+				if (index < cur->numBlocks) {
+					cur->used[index / 8] &= ~getFlag(index % 8);
 					return true;
 				}
 			}
@@ -150,34 +167,40 @@ namespace TEngine { namespace Core {
 	private:
 		PoolHeader<T>* m_startPtr = nullptr;
 		PoolHeader<T>* m_endPtr = nullptr;
+		PoolCache<T> m_used;
 
-		T* getBlockInPool(PoolHeader<T>* pool) {
-			for (unsigned int i = 0; i < pool->used.size(); ++i) {
-				char count = useBlockInSet(pool->used[i]);
-				if (count != -1) {
-					return &(pool->arrBlocks[(i * 8) + count]);
+		size_t getFreeBlockIndex(PoolHeader<T>* pool) {
+			for (size_t i = m_used.index; i < pool->used.size(); ++i) {
+				bitchar_t& set = pool->used[i];
+				if (set != BITCHAR_MAX) {
+					bitchar_t flag = getFirstUnsetFlag(set);
+					set |= flag; // set flag
+					return (i * 8) + getFlagNumber(flag);
 				}
 			}
-			return nullptr;
+			return -1;
 		}
 
-		char useBlockInSet(bitchar_t& set) {
-			if (set == BITCHAR_MAX) {
-				return -1;
+		inline bitchar_t getFirstUnsetFlag(bitchar_t set) {
+			bitchar_t flag = (set + 1) & ~set;
+			assert(isPow2(flag));
+			return flag;
+		}
+
+		inline char getFlagNumber(bitchar_t flag) {
+			char count = 0;
+			while ((flag & 1) == 0) {
+				flag >>= 1;
+				count++;
 			}
-			else {
-				bitchar_t flag = (set + 1) & ~set; // gets first 0 flag
-				assert(isPow2(flag));
-				set |= flag;
-				char count = 0;
-				while ((flag & 1) == 0) {
-					flag >>= 1;
-					count++;
-				}
-				assert((flag & 1) == 1);
-				assert(count >= 0 && count <= 8);
-				return count;
-			}
+			assert((flag & 1) == 1);
+			assert(count >= 0 && count < 8);
+			return count;
+		}
+
+		inline bitchar_t getFlag(char n) {
+			assert(n >= 0 && n < 8);
+			return 1 << n;
 		}
 	};
 }}

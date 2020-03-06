@@ -7,7 +7,7 @@
 
 #include <string>
 #include <iostream>
-#include <chrono>
+#include <bitset>
 
 #include "core/core.h"
 #include "core/memory.h"
@@ -63,15 +63,19 @@ int main() {
 	float a = glfwGetTime();
 
 	size_t l = 10000;
-	pool.reserve(l);
-	// pool.reserve(2);
+	assert(pool.reserve(l) == true);
+
+	float b = glfwGetTime();
+
 	for (unsigned int i = 0; i < l; ++i) {
 		A* ptr = pool.getBlock();
+		assert(ptr != nullptr);
 		ptr = new (ptr) A{ (float)i, 2, 3, 4 };
-		// cout << i << ": " << printA(*ptr) << "\n";
 	}
 
-	cout << "time: " << glfwGetTime() - a << "\n";
+	float now = glfwGetTime();
+	cout << "time to reserve memory: " << b - a << "\n";
+	cout << "time to create objects: " << now - b << "\n";
 
 	/*
 	Entity entity = gEntityManager.createEntity();
