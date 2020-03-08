@@ -83,5 +83,11 @@
     <ClInclude Include="src\core\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\id.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

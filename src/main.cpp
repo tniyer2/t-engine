@@ -7,10 +7,9 @@
 
 #include <string>
 #include <iostream>
-#include <bitset>
 
 #include "core/core.h"
-#include "core/memory.h"
+#include "core/pool.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
 #include "graphics/shader.h"
@@ -60,22 +59,32 @@ int main() {
 
 	RootAllocator gRootAllocator;
 	PoolAllocator<A> pool(gRootAllocator);
-	float a = glfwGetTime();
 
-	size_t l = 10000;
-	assert(pool.reserve(l) == true);
+	double startReserve = glfwGetTime();
+	index_t poolSize = 100;
+	assert(pool.reserve(poolSize));
 
-	float b = glfwGetTime();
+	double finishReserve = glfwGetTime();
 
-	for (unsigned int i = 0; i < l; ++i) {
-		A* ptr = pool.getBlock();
-		assert(ptr != nullptr);
+	for (unsigned int i = 0; i < poolSize-1; ++i) {
+		entity e = entity(i + 1);
+		pool.allocate(e);
+		A* ptr = pool.get(e);
+		assert(ptr);
 		ptr = new (ptr) A{ (float)i, 2, 3, 4 };
+		cout << (unsigned int)e << ": " << printA(*ptr) << "\n";
 	}
 
-	float now = glfwGetTime();
-	cout << "time to reserve memory: " << b - a << "\n";
-	cout << "time to create objects: " << now - b << "\n";
+	double now = glfwGetTime();
+	cout << "time to reserve memory: " << finishReserve - startReserve << "\n";
+	cout << "time to create objects: " << now - finishReserve << "\n";
+
+	pool.allocate(entity(101));
+	A* a = pool.get(entity(1));
+	assert(a);
+	cout << "a: " << printA(*a) << "\n";
+
+	pool.freeAll();
 
 	/*
 	Entity entity = gEntityManager.createEntity();

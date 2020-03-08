@@ -8,7 +8,7 @@
 using std::string;
 using std::vector;
 
-using TEngine::Core::Entity;
+using TEngine::Core::entity;
 using TEngine::Core::IComponent;
 using TEngine::Core::ComponentArray;
 

@@ -3,19 +3,18 @@
 #define CORE_H
 
 #include <atomic>
+
 #include <unordered_map>
 #include <map>
 #include <vector>
-
 using std::unordered_map;
 using std::map;
 using std::vector;
 
-namespace TEngine { namespace Core {
+#include "id.h"
+#include "memory.h"
 
-struct Entity {
-	unsigned int id = 0;
-};
+namespace TEngine { namespace Core {
 
 class EntityManager {
 public:
@@ -26,8 +25,8 @@ public:
 	void startUp() {}
 	void shutDown() {}
 
-	Entity createEntity() {
-		return { ++m_entityIdCounter };
+	entity createEntity() {
+		return entity(++m_entityIdCounter);
 	}
 private:
 	unsigned int m_entityIdCounter = 0;
@@ -35,7 +34,7 @@ private:
 
 class IComponent {
 public:
-	Entity entity;
+	entity entity;
 };
 
 class IComponentArray {};
@@ -45,18 +44,13 @@ class ComponentArray : public IComponentArray {
 public:
 	ComponentArray() {}
 
-	T* getComponent(Entity e) {
-		return m_map[e.id];
+	T* getComponent(entity e) {
+		return nullptr;
 	}
 
-	T* addComponent(Entity e) {
-		/*
-		comp->entity = e;
-		m_map[e.id] = comp;
-		*/
+	T* addComponent(entity e) {
+		return nullptr;
 	}
-private:
-	map<int, void*> m_map;
 };
 
 class ComponentManager {
@@ -76,12 +70,12 @@ public:
 	}
 
 	template<typename T>
-	T* getComponent(Entity e) {
+	T* getComponent(entity e) {
 		return getComponentArray<T>()->getComponent(e);
 	}
 
 	template<typename T>
-	T* setComponent(Entity e) {
+	T* setComponent(entity e) {
 		return getComponentArray<T>()->setComponent(e);
 	}
 private:
