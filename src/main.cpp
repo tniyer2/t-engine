@@ -42,6 +42,25 @@ string printA(A a) {
 		to_string(a.d);
 }
 
+entity getTestEntity(index_t i, index_t size) {
+	return entity(i + 1);
+}
+
+void makeTestEntity(PoolAllocator<A>& pool, unsigned int id, unsigned int val=-1) {
+	if (val == -1) val = id;
+	entity e = entity(id);
+	assert(pool.allocate(e));
+	A* ptr = pool.get(e);
+	assert(ptr);
+	*ptr = A{ (float)val, 2, 3, 4 };
+}
+
+void printAtEntity(PoolAllocator<A>& pool, unsigned int id) {
+	A* a = pool.get(entity(id));
+	assert(a);
+	cout << "a: " << printA(*a) << "\n";
+}
+
 int main() {
 	EntityManager gEntityManager;
 	ComponentManager gComponentManager;
@@ -66,25 +85,47 @@ int main() {
 
 	double finishReserve = glfwGetTime();
 
-	for (unsigned int i = 0; i < poolSize-1; ++i) {
-		entity e = entity(i + 1);
-		pool.allocate(e);
-		A* ptr = pool.get(e);
-		assert(ptr);
-		ptr = new (ptr) A{ (float)i, 2, 3, 4 };
-		cout << (unsigned int)e << ": " << printA(*ptr) << "\n";
+	for (index_t i = 0; i < poolSize-3; ++i) {
+		entity e = getTestEntity(i, poolSize);
+		makeTestEntity(pool, (unsigned int)e);
+		printAtEntity(pool, (unsigned int)e);
 	}
+
+	makeTestEntity(pool, 101);
+	makeTestEntity(pool, 200);
+
+	printAtEntity(pool, 1);
+	printAtEntity(pool, 101);
+	printAtEntity(pool, 200);
+
+	assert(pool.free(entity(200)));
+	makeTestEntity(pool, 200, 300);
+
+	printAtEntity(pool, 1);
+	printAtEntity(pool, 101);
+	printAtEntity(pool, 200);
+	
+	/*
+	for (index_t i = 0; i < poolSize - 3; ++i) {
+		entity e = getTestEntity(i, poolSize);
+		std::cout << "#" << (unsigned int)e << " block type: " << pool.getType(e) << "\n";
+	}
+	*/
+
+	for (index_t i = poolSize-3; i-- > 0;) {
+		entity e = getTestEntity(i, poolSize);
+		assert(pool.free(e));
+		std::cout << "freed #" << (unsigned int)e << "\n";
+	}
+
+	makeTestEntity(pool, 15);
+	printAtEntity(pool, 15);
 
 	double now = glfwGetTime();
 	cout << "time to reserve memory: " << finishReserve - startReserve << "\n";
 	cout << "time to create objects: " << now - finishReserve << "\n";
 
-	pool.allocate(entity(101));
-	A* a = pool.get(entity(1));
-	assert(a);
-	cout << "a: " << printA(*a) << "\n";
-
-	pool.freeAll();
+	pool.clear();
 
 	/*
 	Entity entity = gEntityManager.createEntity();

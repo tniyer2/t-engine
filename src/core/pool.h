@@ -2,6 +2,9 @@
 #ifndef POOL_H
 #define POOL_H
 
+#include <variant>
+#include <iostream>
+
 #include "id.h"
 #include "memory.h"
 
@@ -20,7 +23,7 @@ namespace TEngine { namespace Core {
 	public:
 		Component(PoolAllocator<T>& a, entity e)
 			: m_allocator(a), m_entity(e) {
-			assert(m_entity != 0);
+			assert(m_entity != entity::invalid());
 		}
 
 		T* operator->() {
@@ -44,59 +47,385 @@ namespace TEngine { namespace Core {
 
 	template<typename T>
 	class PoolAllocator : public IDerivedAllocator {
-		struct Bucket {
-			entity key;
-			index_t value = 0;
-			index_t prev = 0;
-			index_t next = 0;
-			bool used = false;
-
-			void set(entity p_key, index_t p_value, index_t p_prev, index_t p_next) {
-				key = p_key;
-				value = p_value;
-				prev = p_prev;
-				next = p_next;
-			}
-
-			void set(const Bucket& b) {
-				key = b.key;
-				value = b.value;
-				prev = b.prev;
-				next = b.next;
-			}
-		};
-
-		struct FreeBlock {
+		struct FreeBlock {};
+		struct LinkedBlock {
 			index_t next = INVALID_INDEX;
 			index_t prev = INVALID_INDEX;
 		};
+		using Block = std::variant<FreeBlock, LinkedBlock, T>;
 
-		template<typename T>
-		struct Header {
-			Header<T>* next = nullptr;
-			Header<T>* prev = nullptr;
-			Bucket* pBuckets = nullptr;
-			T* pBlocks = nullptr;
-			index_t freeBucket = 0;
-			index_t freeBlock = INVALID_INDEX;
-			index_t top = 0;
-			index_t numBlocks = 0;
-
-			Header(Bucket* p1, T* p2, index_t n)
-				: pBuckets(p1), pBlocks(p2), numBlocks(n) {}
+		struct Bucket {
+			entity key;
+			index_t value = 0;
+			index_t prev = INVALID_INDEX;
+			index_t next = INVALID_INDEX;
 		};
 
-		template<typename T>
+		class Pool {
+		public:
+			Pool* next = nullptr;
+			Pool* prev = nullptr;
+		private:
+			Bucket* pBuckets = nullptr;
+			Block* pBlocks = nullptr;
+			index_t freeBucketIndex = 0;
+			index_t freeBlockIndex = INVALID_INDEX;
+			index_t top = 0;
+			index_t numBlocks = 0;
+		public:
+			Pool(index_t n, Bucket* buckets, Block* blocks)
+				: numBlocks(n), pBuckets(buckets), pBlocks(blocks) {
+				initBuckets();
+				initBlocks();
+			}
+			~Pool() {}
+
+			T* get(entity handle) {
+				index_t index = getBucketIndex(handle);
+				if (index == INVALID_INDEX) return nullptr;
+				Bucket& b = getBucket(index);
+				T* ptr = getBlockAs<T>(b.value);
+				assert(ptr);
+				return ptr;
+			}
+
+			bool allocate(entity handle) {
+				if (this->top == this->numBlocks &&
+					this->freeBlockIndex == INVALID_INDEX) return false;
+				if (getBucketIndex(handle) != INVALID_INDEX) return false;
+				assert(this->freeBucketIndex != INVALID_INDEX);
+
+				index_t blockIndex = useBlock();
+				*getBlock(blockIndex) = T();
+				insertKey(handle, blockIndex);
+
+				return true;
+			}
+
+			bool free(entity handle) {
+				index_t bucketIndex = getBucketIndex(handle);
+				if (bucketIndex == INVALID_INDEX) return false;
+
+				index_t blockIndex = getBucket(bucketIndex).value;
+				freeBlock(blockIndex);
+
+				index_t freeIndex = freeBucketFromHashChain(bucketIndex);
+				linkBucket(freeIndex);
+
+				return true;
+			}
+
+			unsigned int getType(entity handle) {
+				index_t index = getBucketIndex(handle);
+				if (index == INVALID_INDEX) return -1;
+				Bucket& b = getBucket(index);
+				Block& block = *getBlock(b.value);
+				return block.index();
+			}
+		private:
+			void initBuckets() {
+				// create and link buckets to adjacent buckets
+				index_t next = 1;
+				index_t prev = INVALID_INDEX;
+				for (index_t i = 0; i < this->numBlocks; ++i) {
+					Bucket* b = new (this->pBuckets + i) Bucket();
+					b->next = next++;
+					b->prev = prev++;
+				}
+
+				// loop start and end links
+				index_t last = this->numBlocks - 1;
+				this->pBuckets[0].prev = last;
+				this->pBuckets[last].next = 0;
+			}
+
+			void initBlocks() {
+				for (index_t i = 0; i < this->numBlocks; ++i) {
+					Block* b = new (this->pBlocks + i) Block();
+				}
+			}
+
+			inline index_t hash(entity handle) {
+				return (unsigned int)handle % this->numBlocks;
+			}
+
+			inline Bucket& getBucket(index_t index) {
+				assert(index < this->numBlocks);
+				return this->pBuckets[index];
+			}
+
+			Bucket& useBucket(index_t freeIndex) {
+				Bucket& free = getBucket(freeIndex);
+				assert(free.key == entity::invalid());
+				assert(free.value == 0);
+				assert(free.prev != INVALID_INDEX);
+				assert(free.next != INVALID_INDEX);
+
+				// join sibling nodes
+				Bucket& prev = getBucket(free.prev);
+				Bucket& next = getBucket(free.next);
+				prev.next = free.next;
+				next.prev = free.prev;
+
+				// update free index
+				if (this->freeBucketIndex == freeIndex) {
+					bool lastBucket = freeIndex == free.next;
+					this->freeBucketIndex = lastBucket ? INVALID_INDEX : free.next;
+				}
+				return free;
+			}
+
+			void insertKey(entity handle, index_t value) {
+				index_t startIndex = hash(handle);
+				Bucket& start = getBucket(startIndex);
+
+				if (start.key == entity::invalid()) {
+					// if bucket not used, use.
+					useBucket(startIndex);
+					start = { handle, value };
+				}
+				else if (hash(start.key) == startIndex) {
+					/* if bucket used by key with same hash,
+					   insert key into a new bucket between
+					   start and next. */
+
+					index_t freeIndex = this->freeBucketIndex;
+					Bucket& free = useBucket(freeIndex);
+
+					index_t nextIndex = start.next;
+					if (nextIndex != INVALID_INDEX) {
+						Bucket& next = getBucket(nextIndex);
+						next.prev = freeIndex;
+					}
+					start.next = freeIndex;
+
+					free = { handle, value, startIndex, nextIndex };
+				}
+				else {
+					/* if bucket used by random key,
+					   move random key to a free bucket
+					   and insert key into this bucket. */
+
+					index_t freeIndex = this->freeBucketIndex;
+					Bucket& free = useBucket(freeIndex);
+					free = start;
+
+					if (free.prev != INVALID_INDEX) {
+						Bucket& prev = getBucket(free.prev);
+						prev.next = freeIndex;
+					}
+					if (free.next != INVALID_INDEX) {
+						Bucket& next = getBucket(free.next);
+						next.prev = freeIndex;
+					}
+
+					start = { handle, value };
+				}
+			}
+
+			inline Block* getBlock(index_t index) {
+				assert(index < this->numBlocks);
+				return this->pBlocks + index;
+			}
+
+			template<typename U>
+			inline U* getBlockAs(index_t index) {
+				return std::get_if<U>(getBlock(index));
+			}
+
+			template<typename U>
+			inline U& getBlockRefAs(index_t index) {
+				U* ptr = getBlockAs<U>(index);
+				assert(ptr);
+				return *ptr;
+			}
+
+			index_t useBlock() {
+				if (this->freeBlockIndex != INVALID_INDEX) {
+					/* if free list exists,
+					   use the starting block. */
+
+					index_t freeIndex = this->freeBlockIndex;
+					LinkedBlock& free = getBlockRefAs<LinkedBlock>(freeIndex);
+					assert(free.prev == INVALID_INDEX);
+
+					// set next block in chain as the new start
+					index_t nextIndex = free.next;
+					if (nextIndex != INVALID_INDEX) {
+						LinkedBlock& next = getBlockRefAs<LinkedBlock>(nextIndex);
+						next.prev = INVALID_INDEX;
+					}
+					this->freeBlockIndex = nextIndex;
+
+					return freeIndex;
+				}
+				else {
+					/* get block from top of the stack */
+					assert(this->top < this->numBlocks);
+					return this->top++;
+				}
+			}
+
+			void freeBlock(index_t index) {
+				if (this->top == index + 1) {
+					/* if the topmost block is
+					   part of the free chain. */
+
+					this->top--;
+
+					Block& topBlock = *getBlock(index);
+					assert(std::holds_alternative<T>(topBlock));
+					topBlock = FreeBlock();
+
+					for (index_t prevIndex = index; prevIndex-- > 0;) {
+						Block& prevBlock = *getBlock(prevIndex);
+						if (!std::holds_alternative<LinkedBlock>(prevBlock)) break;
+
+						unlinkBlock(prevIndex);
+						prevBlock = FreeBlock();
+						this->top--;
+					}
+				}
+				else {
+					addBlockToFreeChain(index);
+				}
+			}
+
+			void addBlockToFreeChain(index_t freeIndex) {
+				Block& freeBlock = *getBlock(freeIndex);
+				assert(!std::holds_alternative<LinkedBlock>(freeBlock));
+
+				freeBlock = LinkedBlock();
+				LinkedBlock& free = getBlockRefAs<LinkedBlock>(freeIndex);
+
+				if (this->freeBlockIndex == INVALID_INDEX) {
+					this->freeBlockIndex = freeIndex;
+				}
+				else {
+					index_t startIndex = this->freeBlockIndex;
+					LinkedBlock& start = getBlockRefAs<LinkedBlock>(startIndex);
+					
+					index_t nextIndex = start.next;
+					if (nextIndex != INVALID_INDEX) {
+						LinkedBlock& next = getBlockRefAs<LinkedBlock>(nextIndex);
+						next.prev = freeIndex;
+					}
+					start.next = freeIndex;
+
+					free.prev = startIndex;
+					free.next = nextIndex;
+				}
+			}
+
+			void unlinkBlock(index_t index) {
+				LinkedBlock& block = getBlockRefAs<LinkedBlock>(index);
+
+				if (block.prev == INVALID_INDEX) {
+					assert(this->freeBlockIndex == index);
+
+					if (block.next == INVALID_INDEX) {
+						this->freeBlockIndex = INVALID_INDEX;
+					}
+					else {
+						index_t nextIndex = block.next;
+						LinkedBlock& next = getBlockRefAs<LinkedBlock>(nextIndex);
+						next.prev = INVALID_INDEX;
+						this->freeBlockIndex = nextIndex;
+					}
+				}
+				else {
+					index_t prevIndex = block.prev;
+					LinkedBlock& prev = getBlockRefAs<LinkedBlock>(prevIndex);
+
+					index_t nextIndex = block.next;
+					if (nextIndex != INVALID_INDEX) {
+						LinkedBlock& next = getBlockRefAs<LinkedBlock>(nextIndex);
+						next.prev = prevIndex;
+					}
+					prev.next = nextIndex;
+				}
+			}
+
+			index_t getBucketIndex(entity handle) {
+				index_t index = hash(handle);
+
+				while (index != INVALID_INDEX) {
+					Bucket& b = getBucket(index);
+					if (b.key == entity::invalid()) {
+						return INVALID_INDEX;
+					}
+					else if (b.key == handle) {
+						return index;
+					}
+					else {
+						index = b.next;
+					}
+				}
+				return INVALID_INDEX;
+			}
+
+			index_t freeBucketFromHashChain(index_t startIndex) {
+				Bucket& start = getBucket(startIndex);
+				if (start.prev == INVALID_INDEX) {
+					if (start.next == INVALID_INDEX) {
+						return startIndex;
+					}
+					else {
+						index_t nextIndex = start.next;
+						Bucket& next = getBucket(nextIndex);
+						next.prev = INVALID_INDEX;
+						start = next;
+						return nextIndex;
+					}
+				}
+				else {
+					index_t prevIndex = start.prev;
+					Bucket& prev = getBucket(prevIndex);
+
+					index_t nextIndex = start.next;
+					if (nextIndex != INVALID_INDEX) {
+						Bucket& next = getBucket(nextIndex);
+						next.prev = prevIndex;
+					}
+					prev.next = nextIndex;
+
+					return startIndex;
+				}
+			}
+
+			void linkBucket(index_t freeIndex) {
+				Bucket& free = getBucket(freeIndex);
+				index_t startIndex = this->freeBucketIndex;
+
+				if (startIndex == INVALID_INDEX) {
+					this->freeBucketIndex = freeIndex;
+					Bucket temp{ entity::invalid(), 0, freeIndex, freeIndex };
+					free = temp;
+				}
+				else {
+					Bucket& start = getBucket(startIndex);
+					index_t nextIndex = start.next;
+					Bucket& next = getBucket(nextIndex);
+
+					start.next = freeIndex;
+					next.prev = freeIndex;
+
+					Bucket temp{ entity::invalid(), 0, startIndex, nextIndex };
+					free = temp;
+				}
+			}
+		};
+
 		class Iterator {
 		private:
-			PoolAllocator<T>& m_allocator;
-			Header<T>* m_pool = nullptr;
+			PoolAllocator& m_allocator;
+			Pool* m_pool = nullptr;
 		public:
-			Iterator(PoolAllocator<T>& a, Header<T>* pool)
+			Iterator(PoolAllocator& a, Pool* pool)
 				: m_allocator(a), m_pool(pool) {}
 
-			Iterator<T>& operator++() {
-				assert(m_pool);
+			Iterator& operator++() {
+				assert(m_pool != nullptr);
 				if (m_pool == m_allocator.m_pEnd) {
 					m_pool = nullptr;
 				}
@@ -107,13 +436,13 @@ namespace TEngine { namespace Core {
 				}
 				return *this;
 			}
-			Iterator<T> operator++(int) {
-				Iterator<T> temp(*this);
+			Iterator operator++(int) {
+				Iterator temp(*this);
 				operator++();
 				return temp;
 			}
 
-			Iterator<T>& operator--() {
+			Iterator& operator--() {
 				assert(m_pool != m_allocator.m_pStart);
 				if (m_pool == nullptr) {
 					m_pool = m_allocator.m_pEnd;
@@ -125,23 +454,29 @@ namespace TEngine { namespace Core {
 				}
 				return *this;
 			}
-			Iterator<T> operator--(int) {
-				Iterator<T> temp(*this);
+			Iterator operator--(int) {
+				Iterator temp(*this);
 				operator--();
 				return temp;
 			}
 
-			bool isEnd() { return m_pool == nullptr; }
-			bool isEnd() const { return m_pool == nullptr; }
+			bool isEnd() { return !m_pool; }
+			bool isEnd() const { return !m_pool; }
 
-			Header<T>* operator->() { return m_pool; }
-			const Header<T>* operator->() const { return m_pool; }
+			Pool* operator->() {
+				assert(m_pool);
+				return m_pool;
+			}
+			const Pool* operator->() const {
+				assert(m_pool);
+				return m_pool;
+			}
 
-			Header<T>& operator*() {
+			Pool& operator*() {
 				assert(m_pool);
 				return *m_pool;
 			}
-			const Header<T>& operator*() const {
+			const Pool& operator*() const {
 				assert(m_pool);
 				return *m_pool;
 			}
@@ -149,37 +484,26 @@ namespace TEngine { namespace Core {
 	public:
 		PoolAllocator(IRootAllocator& a) : IDerivedAllocator(a) {}
 
-		void freeAll() {
-			auto it = poolBegin();
-			while (!it.isEnd()) {
-				m_allocator.free(&*it++);
-			}
-		}
-
 		bool reserve(index_t numBlocks) {
 			if (numBlocks == 0 || numBlocks == INVALID_INDEX) return false;
-			assert(sizeof(T) > sizeof(FreeBlock));
 
-			size_t sHeader = align(sizeof(Header<T>));
+			size_t sHeader = align(sizeof(Pool));
 			size_t sBuckets = align(numBlocks * sizeof(Bucket));
-			size_t sBlocks = align(numBlocks * sizeof(T));
+			size_t sBlocks = align(numBlocks * sizeof(Block));
 			size_t size = sHeader + sBuckets + sBlocks;
 			void* ptr = m_allocator.allocate(size);
 			if (!ptr) return false;
 
 			word_t base = (word_t)ptr;
-			auto pHeader = new (ptr) Header<T>(
+			auto pHeader = new (ptr) Pool(
+				numBlocks,
 				(Bucket*)(base + sHeader), // pBuckets
-				(T*)(base + sHeader + sBuckets), // pBlocks
-				numBlocks
+				(Block*)(base + sHeader + sBuckets) // pBlocks
 			);
-
-			initBuckets(pHeader->pBuckets, numBlocks);
 
 			if (m_pStart == nullptr) {
 				m_pStart = pHeader;
 				m_pEnd = pHeader;
-				m_pUsed = pHeader;
 			}
 			else {
 				m_pEnd->next = pHeader;
@@ -193,8 +517,8 @@ namespace TEngine { namespace Core {
 		bool allocate(entity handle) {
 			if (handle == entity::invalid()) return false;
 
-			for (auto it = poolUsed(); !it.isEnd(); ++it) {
-				if (allocate(*it, handle)) return true;
+			for (auto it = poolBegin(); !it.isEnd(); ++it) {
+				if (it->allocate(handle)) return true;
 			}
 			return false;
 		}
@@ -203,273 +527,38 @@ namespace TEngine { namespace Core {
 			if (handle == entity::invalid()) return nullptr;
 
 			for (auto it = poolBegin(); !it.isEnd(); ++it) {
-				auto ptr = get(*it, handle);
+				auto ptr = it->get(handle);
 				if (ptr) return ptr;
 			}
 			return nullptr;
+		}
+
+		unsigned int getType(entity handle) {
+			return poolBegin()->getType(handle);
 		}
 
 		bool free(entity handle) {
 			if (handle == entity::invalid()) return false;
 
 			for (auto it = poolBegin(); !it.isEnd(); ++it) {
-				if (free(*it, handle)) return true;
+				if (it->free(handle)) return true;
 			}
 			return false;
 		}
+
+		void clear() {
+			for (auto it = poolBegin(); !it.isEnd(); it++) {
+				Pool* pool = &*it;
+				pool->~Pool();
+				m_allocator.free(pool);
+			}
+		}
 	private:
-		Header<T>* m_pStart = nullptr;
-		Header<T>* m_pEnd = nullptr;
-		Header<T>* m_pUsed = nullptr;
+		Pool* m_pStart = nullptr;
+		Pool* m_pEnd = nullptr;
 
-		void initBuckets(Bucket* pBuckets, index_t length) {
-			if (!length) return;
-
-			int next = 1;
-			int prev = INVALID_INDEX;
-			for (index_t i = 0; i < length; ++i) {
-				Bucket* b = new (pBuckets + i) Bucket();
-				b->next = next++;
-				b->prev = prev++;
-			}
-
-			index_t last = length - 1;
-			pBuckets[0].prev = last;
-			pBuckets[last].next = 0;
-		}
-
-		Iterator<T> poolBegin() {
-			return Iterator<T>(*this, m_pStart);
-		}
-
-		Iterator<T> poolUsed() {
-			return Iterator<T>(*this, m_pUsed);
-		}
-
-		inline index_t hash(Header<T>& pool, entity handle) {
-			return (unsigned int)handle % pool.numBlocks;
-		}
-
-		inline Bucket& getBucket(Header<T>& pool, index_t index) {
-			assert(index < pool.numBlocks);
-			return pool.pBuckets[index];
-		}
-
-		Bucket& useBucket(Header<T>& pool, index_t index) {
-			Bucket& b = getBucket(pool, index);
-			assert(b.key == entity::invalid());
-			assert(b.value == 0);
-			Bucket& prev = getBucket(pool, b.prev);
-			Bucket& next = getBucket(pool, b.next);
-			prev.next = b.next;
-			next.prev = b.prev;
-			if (pool.freeBucket == index) {
-				pool.freeBucket = index == b.next ? INVALID_INDEX : b.next;
-			}
-			return b;
-		}
-
-		void insertKey(Header<T>& pool, entity handle, index_t value) {
-			index_t startIndex = hash(pool, handle);
-			Bucket& start = getBucket(pool, startIndex);
-			// if bucket not used
-			if (start.key == entity::invalid()) {
-				useBucket(pool, startIndex);
-				start.set(handle, value, INVALID_INDEX, INVALID_INDEX);
-			}
-			// if bucket used by random key
-			else if (start.key != handle) {
-				Bucket& free = useBucket(pool, pool.freeBucket);
-				free.set(start);
-				start.set(handle, value, INVALID_INDEX, INVALID_INDEX);
-			}
-			// if bucket used by key with same hash
-			else {
-				index_t freeIndex = pool.freeBucket;
-				Bucket& free = useBucket(pool, freeIndex);
-
-				index_t nextIndex = start.next;
-				if (nextIndex != INVALID_INDEX) {
-					Bucket& next = getBucket(pool, nextIndex);
-					next.prev = freeIndex;
-				}
-
-				start.next = freeIndex;
-				free.set(handle, value, startIndex, nextIndex);
-			}
-		}
-
-		inline bool validBlockIndex(Header<T>& pool, index_t index) {
-			return pool.top <= pool.numBlocks && index < pool.top - 1;
-		}
-
-		inline T* getBlock(Header<T>& pool, index_t index) {
-			assert(validBlockIndex(pool, index));
-			return pool.pBlocks + index;
-		}
-
-		inline FreeBlock* getFreeBlock(Header<T>& pool, index_t index) {
-			assert(validBlockIndex(pool, index));
-			return (FreeBlock*)(pool.pBlocks + index);
-		}
-
-		index_t useFreeBlock(Header<T>& pool) {
-			if (pool.freeBlock != INVALID_INDEX) {
-				index_t freeIndex = pool.freeBlock;
-				FreeBlock* free = getFreeBlock(pool, freeIndex);
-				assert(free->prev == INVALID_INDEX);
-
-				index_t nextIndex = free->next;
-				if (nextIndex != INVALID_INDEX) {
-					FreeBlock* next = getFreeBlock(pool, nextIndex);
-					next->prev = INVALID_INDEX;
-				}
-				pool.freeBlock = nextIndex;
-
-				return freeIndex;
-			}
-			else {
-				assert(pool.top < pool.numBlocks);
-				return pool.top++;
-			}
-		}
-
-		bool allocate(Header<T>& pool, entity handle) {
-			if (pool.top == pool.numBlocks && pool.freeBlock == INVALID_INDEX) return false;
-			assert(pool.freeBucket != INVALID_INDEX);
-
-			index_t index = useFreeBlock(pool);
-			Bucket& b = getBucket(pool, index);
-
-			assert(!b.used);
-			b.used = true;
-
-			insertKey(pool, handle, index);
-
-			return true;
-		}
-
-		index_t getBucketIndex(Header<T>& pool, entity handle) {
-			index_t index = hash(pool, handle);
-			while (index != INVALID_INDEX) {
-				Bucket& b = getBucket(pool, index);
-				if (b.key == handle) {
-					return index;
-				}
-				else {
-					index = b.next;
-				}
-			}
-			return INVALID_INDEX;
-		}
-
-		T* get(Header<T>& pool, entity handle) {
-			index_t index = getBucketIndex(pool, handle);
-			if (index == INVALID_INDEX) return nullptr;
-			return pool.pBlocks + index;
-		}
-
-		index_t freeBucketFromHashChain(Header<T>& pool, index_t index) {
-			Bucket& b = getBucket(pool, index);
-			if (b.prev == INVALID_INDEX) {
-				if (b.next == INVALID_INDEX) {
-					return index;
-				}
-				else {
-					index_t nextIndex = b.next;
-					Bucket& next = getBucket(pool, nextIndex);
-					next.prev = INVALID_INDEX;
-					b.set(next);
-					return nextIndex;
-				}
-			}
-			else {
-				index_t prevIndex = b.prev;
-				Bucket& prev = getBucket(pool, prevIndex);
-				index_t nextIndex = b.next;
-				prev.next = nextIndex;
-				if (nextIndex != INVALID_INDEX) {
-					Bucket& next = getBucket(pool, nextIndex);
-					next.prev = prevIndex;
-				}
-				return index;
-			}
-		}
-
-		void addBucketToFreeChain(Header<T>& pool, index_t index) {
-			Bucket& b = getBucket(pool, index);
-
-			index_t startIndex = pool.freeBucket;
-			if (startIndex == INVALID_INDEX) {
-				startIndex = index;
-				b.set(0, 0, index, index);
-			}
-			else {
-				Bucket& start = getBucket(pool, startIndex);
-				index_t nextIndex = start.next;
-				Bucket& next = getBucket(pool, nextIndex);
-				start.next = index;
-				next.prev = index;
-				b.set(0, 0, startIndex, nextIndex);
-			}
-		}
-
-		void freeBlockFromFreeChain(Header<T>& pool, index_t index) {
-			FreeBlock& block = *getFreeBlock(pool, index);
-			if (block.prev == INVALID_INDEX) {
-				assert(pool.freeBlock == index);
-				if (block.next == INVALID_INDEX) {
-					pool.freeBlock = INVALID_INDEX;
-				}
-				else {
-					index_t nextIndex = block.next;
-					FreeBlock& next = *getFreeBlock(pool, nextIndex);
-					next.prev = INVALID_INDEX;
-					pool.freeBlock = nextIndex;
-				}
-			}
-			else {
-				index_t prevIndex = block.prev;
-				FreeBlock& prev = *getFreeBlock(pool, prevIndex);
-				index_t nextIndex = block.next;
-				prev.next = nextIndex;
-				if (nextIndex != INVALID_INDEX) {
-					FreeBlock& next = *getFreeBlock(pool, nextIndex);
-					next.prev = prevIndex;
-				}
-			}
-		}
-
-		void freeBlock(Header<T>& pool, index_t index) {
-			if (pool.top == index + 1) {
-				index_t neighborIndex = index - 1;
-				Bucket& b = getBucket(pool, neighborIndex);
-				if (!b.used) {
-					freeBlockFromFreeChain(pool, neighborIndex);
-				}
-				pool.top--;
-			}
-			else {
-				freeBlockFromFreeChain(pool, index);
-			}
-		}
-
-		bool free(Header<T>& pool, entity handle) {
-			index_t bucketIndex = getBucketIndex(pool, handle);
-			if (bucketIndex == INVALID_INDEX) return false;
-
-			Bucket& bucket = getBucket(pool, bucketIndex);
-			index_t blockIndex = bucket.value;
-			Bucket& usedBucket = getBucket(pool, blockIndex);
-			assert(usedBucket.used);
-			usedBucket.used = false;
-
-			index_t freeIndex = freeBucketFromHashChain(pool, bucketIndex);
-			addBucketToFreeChain(pool, freeIndex);
-
-			freeBlock(pool, blockIndex);
-
-			return true;
+		Iterator poolBegin() {
+			return Iterator(*this, m_pStart);
 		}
 	};
 }}
