@@ -1,24 +1,21 @@
 
-#ifndef MESH_H
-#define MESH_H
+#ifndef GRAPHICS_MESH_H
+#define GRAPHICS_MESH_H
+
+#include "../core/id.h"
+#include "shader.h"
 
 #include <glad/glad.h>
-
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include <string>
 #include <vector>
 
-#include <fstream>
-#include <sstream>
-#include <iostream>
+namespace TEngine::Graphics {
 
-#include "shader.h"
+struct mesh_tag{};
+using meshId = TEngine::Core::Id<mesh_tag, unsigned int, 0>;
 
-using namespace std;
-
-namespace TEngine { namespace Graphics {
 struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Normal;
@@ -29,23 +26,23 @@ struct Vertex {
 
 struct Texture {
 	unsigned int id;
-	string type;
-	string path;
+	std::string type;
+	std::string path;
 };
 
 class Mesh {
 public:
-	vector<Vertex> vertices;
-	vector<unsigned int> indices;
-	vector<Texture> textures;
+	std::vector<Vertex> vertices;
+	std::vector<unsigned int> indices;
+	std::vector<Texture> textures;
 	unsigned int VAO;
-
-	Mesh(vector<Vertex>, vector<unsigned int>, vector<Texture>);
-	void draw(Shader);
-
 private:
 	unsigned int m_VBO, m_EBO;
+public:
+	Mesh(std::vector<Vertex>, std::vector<unsigned int>, std::vector<Texture>);
+	void draw(const Shader&);
+private:
 	void setupMesh();
 };
-}}
+}
 #endif

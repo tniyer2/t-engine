@@ -67,3 +67,40 @@ void Camera::processMouseScroll(float yoffset) {
 	}
 }
 }}
+
+/*
+void Window::processInput(float deltaTime) {
+	if (input.isKeyDown("escape")) {
+		glfwSetWindowShouldClose(m_windowPtr, true);
+	}
+
+	if (input.isKeyDown("w")) {
+		camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
+	}
+	if (input.isKeyDown("s")) {
+		camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
+	}
+	if (input.isKeyDown("a")) {
+		camera.processKeyboard(CameraMovement::LEFT, deltaTime);
+	}
+	if (input.isKeyDown("d")) {
+		camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
+	}
+
+	MouseEvent e = input.getMouseInfo();
+	camera.processMouseMovement(e.posX, e.posY);
+
+	ScrollEvent e2 = input.getScrollInfo();
+	camera.processMouseScroll(e2.yoffset);
+
+	if (input.isKeyDown("mouse_left")) {
+		std::cout << "left clicking\n";
+	}
+	if (input.isKeyDown("mouse_right")) {
+		std::cout << "right clicking\n";
+	}
+	if (input.isKeyDown("mouse_middle")) {
+		std::cout << "middle clicking\n";
+	}
+}
+*/

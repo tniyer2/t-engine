@@ -1,24 +1,32 @@
 
 #include "renderer.h"
+#include "../utility/boolean.h"
 
-using glm::mat4;
+namespace TEngine::Graphics {
 
-namespace TEngine { namespace Graphics {
+void Renderer::startUp() {
+	if (!Utility::toggle<true>(running)) return;
 
-bool Renderer::running = false;
+	m_data = new RendererData(Core::RootAllocator::getInstance());
 
-void Renderer::pStartUp() {
-	m_window = new Window();
-	m_meshComponents = new ComponentArray<MeshComponent>();
+	Core::ComponentManager::getInstance().registerComponentArray<MeshComponent>(
+		(Core::IComponentArray<MeshComponent>&)m_data->meshArray);
+
+	glClearColor(0, 0.5, 1, 0);
+	glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::pShutDown() {
-	delete m_meshComponents;
-	delete m_window;
+void Renderer::shutDown() {
+	if (!Utility::toggle<false>(running)) return;
+
+	delete m_data;
 }
 
-void Renderer::pUpdate(float deltaTime) {}
-}}
+void Renderer::update(float deltaTime) {
+	m_data->window.update(deltaTime);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+}
 
 /*
 Window& window = m_data->window;

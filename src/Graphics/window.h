@@ -1,17 +1,29 @@
 
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef GRAPHICS_WINDOW_H
+#define GRAPHICS_WINDOW_H
+
+#include "../input/input.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <string>
 #include <iostream>
 
-#include "../input/input.h"
-#include "camera.h"
+namespace TEngine::Graphics {
 
 using TEngine::NS_Input::Input;
 
-namespace TEngine { namespace Graphics {
+void error_callback(int, const char*);
+
+class Callbacks {
+public:
+	static void resize_callback(GLFWwindow*, int, int);
+	static void key_callback(GLFWwindow*, int, int, int, int);
+	static void mouse_button_callback(GLFWwindow*, int, int, int);
+	static void mouse_callback(GLFWwindow*, double, double);
+	static void scroll_callback(GLFWwindow*, double, double);
+};
 
 enum class ScreenMode {
 	windowed,
@@ -21,55 +33,42 @@ enum class ScreenMode {
 
 class Window {
 public:
+	Input input;
+private:
+	GLFWwindow* m_windowPtr = nullptr;
+	std::string m_title = "TEngine";
+
+	int m_width = 640;
+	int m_height = 480;
+	ScreenMode m_screenMode = ScreenMode::windowed;
+	bool m_isOpen = false;
+public:
+	friend class Callbacks;
+
 	Window();
 	~Window();
-
 	Window(const Window&) = delete;
 	void operator=(const Window&) = delete;
 
-	Input input;
-	Camera camera;
+	// getters
+	int getWidth() { return m_width; }
+	int getHeight() { return m_height; }
+	std::string getTitle() { return m_title; }
+	ScreenMode getScreenMode() { return m_screenMode; }
+	bool isOpen() { return m_isOpen; }
 
-	inline int getWidth() { return m_width; }
-	inline int getHeight() { return m_height; }
-	inline const char* getTitle() { return m_title; }
-	inline ScreenMode getScreenMode() { return m_screenMode; }
-	inline bool isOpen() { return m_isOpen; }
-
+	// setters
 	void setWidth(int);
 	void setHeight(int);
 	void setSize(int, int);
-	void setTitle(const char*);
+	void setTitle(std::string);
 	void setScreenMode(ScreenMode);
 
-	bool shouldClose();
-	void clear();
 	void update(float);
+	bool shouldClose();
 	void close();
 private:
-	int m_width = 640, m_height = 480;
-	const char* m_title = "TEngine";
-	ScreenMode m_screenMode = ScreenMode::windowed;
-
-	GLFWwindow* m_windowPtr = NULL;
-	bool m_isOpen = false;
-
 	void resize();
-	void setViewport(); // @todo refactor, this is camera logic
-	void processInput(float); // @todo refactor, this is game logic
-
-	friend void resize_callback(GLFWwindow*, int, int);
-	friend void key_callback(GLFWwindow*, int, int, int, int);
-	friend void mouse_button_callback(GLFWwindow*, int, int, int);
-	friend void mouse_callback(GLFWwindow*, double, double);
-	friend void scroll_callback(GLFWwindow*, double, double);
 };
-
-void error_callback(int, const char*);
-void resize_callback(GLFWwindow*, int, int);
-void key_callback(GLFWwindow*, int, int, int, int);
-void mouse_button_callback(GLFWwindow*, int, int, int);
-void mouse_callback(GLFWwindow*, double, double);
-void scroll_callback(GLFWwindow*, double, double);
-}}
+}
 #endif

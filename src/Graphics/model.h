@@ -1,6 +1,9 @@
 
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef GRAPHICS_MODEL_H
+#define GRAPHICS_MODEL_H
+
+#include "mesh.h"
+#include "shader.h"
 
 #include <glad/glad.h> 
 
@@ -20,29 +23,25 @@
 #include <sstream>
 #include <iostream>
 
-#include "mesh.h"
-#include "shader.h"
-
 namespace TEngine { namespace Graphics {
-using namespace std;
 
-unsigned int textureFromFile(const char*, const string&, bool=false);
+unsigned int textureFromFile(const char*, const std::string&, bool=false);
 
 class Model {
 public:
-	vector<Texture> textures_loaded;
-	vector<Mesh> meshes;
-	string directory;
+	std::vector<Texture> textures_loaded;
+	std::vector<Mesh> meshes;
+	std::string directory;
 	bool gammaCorrection;
 
-	Model(string const&, bool=false);
+	Model(std::string const&, bool=false);
 	void draw(Shader shader);
 
 private:
-	void loadModel(string const&);
+	void loadModel(std::string const&);
 	void processNode(aiNode*, const aiScene*);
 	Mesh processMesh(aiMesh*, const aiScene*);
-	vector<Texture> loadMaterialTextures(aiMaterial*, aiTextureType, string);
+	std::vector<Texture> loadMaterialTextures(aiMaterial*, aiTextureType, std::string);
 };
 }}
 #endif

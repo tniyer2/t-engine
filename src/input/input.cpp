@@ -1,16 +1,16 @@
 
-#include <GLFW/glfw3.h>
 #include "input.h"
+#include <GLFW/glfw3.h>
 
 namespace TEngine { namespace NS_Input {
 
-array<int, 31> KEY_RANGES = {
+std::array<int, 31> KEY_RANGES = {
 	32, 39, -1, 44, 57, 59, 61, -1, 65, 93, 96, 161, 162, -1, 256, 269,
 	-1, 280, 284, -1, 290, 314, -1, 320, 336, -1, 340, 348,
 	-1, 400, 402 // first three mouse buttons
 };
 
-array<string, 98> KEY_TO_TEXT = {
+std::array<std::string, 98> KEY_TO_TEXT = {
 	"unknown", "\s", "'", ",", "-", ".", "/",
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 	";", "=",
@@ -40,9 +40,9 @@ KeyState translate_key_action(int action) {
 	}
 }
 
-map<int, int> get_key_translations() {
+std::map<int, int> get_key_translations() {
 	int count = 0;
-	map<int, int> translations({{-1, count++}});
+	std::map<int, int> translations({{-1, count++}});
 
 	for (unsigned int i = 0; i < KEY_RANGES.size(); ++i) {
 		int key = KEY_RANGES[i];
@@ -63,8 +63,8 @@ map<int, int> get_key_translations() {
 	return translations;
 }
 
-map<string, int> get_text_translations() {
-	map<string, int> translations({});
+std::map<std::string, int> get_text_translations() {
+	std::map<std::string, int> translations({});
 	for (unsigned int i = 0; i < KEY_TO_TEXT.size(); ++i) {
 		translations[KEY_TO_TEXT[i]] = i;
 	}
@@ -86,7 +86,7 @@ void Input::clear() {
 void Input::pushKeyEvent(int key, int scancode, int action, int mods) {
 	key = m_glfwToKey[key];
 	KeyState state = translate_key_action(action);
-	string text = KEY_TO_TEXT[key];
+	std::string text = KEY_TO_TEXT[key];
 	KeyEvent e(key, state, mods, text);
 
 	m_keyEvents.push_back(e);
@@ -105,7 +105,7 @@ void Input::pushScrollEvent(double xoffset, double yoffset) {
 	m_scrollEvent = { (float)xoffset, (float)yoffset };
 }
 
-KeyEvent Input::pollKey(string text) {
+KeyEvent Input::pollKey(std::string text) {
 	int key = m_textToKey[text];
 	if (key != 0) {
 		char index = m_keys[key];
@@ -116,9 +116,8 @@ KeyEvent Input::pollKey(string text) {
 	return KeyEvent(key);
 }
 
-bool Input::isKeyDown(string text) {
+bool Input::isKeyDown(std::string text) {
 	KeyEvent e = pollKey(text);
 	return e.state == KeyState::press || e.state == KeyState::repeat;
 }
-
 }}

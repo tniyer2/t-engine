@@ -1,15 +1,13 @@
 
 #include "window.h"
 
-using TEngine::NS_Input::KeyState;
-using TEngine::NS_Input::MouseEvent;
-using TEngine::NS_Input::ScrollEvent;
+namespace TEngine::Graphics {
 
-namespace TEngine { namespace Graphics {
+using NS_Input::KeyState;
+using NS_Input::MouseEvent;
+using NS_Input::ScrollEvent;
 
 Window::Window() {
-	camera.window = this;
-
 	// Listen for glfw errors
 	glfwSetErrorCallback(error_callback);
 
@@ -21,7 +19,7 @@ Window::Window() {
 	}
 
 	// Create window
-	m_windowPtr = glfwCreateWindow(m_width, m_height, m_title, NULL, NULL);
+	m_windowPtr = glfwCreateWindow(m_width, m_height, m_title.c_str(), NULL, NULL);
 	if (m_windowPtr == NULL) {
 		std::cout << "Could not create window.\n";
 		return;
@@ -29,10 +27,11 @@ Window::Window() {
 
 	// Set callbacks and activate window
 	glfwSetWindowUserPointer(m_windowPtr, this);
-	glfwSetWindowSizeCallback(m_windowPtr, resize_callback);
-	glfwSetKeyCallback(m_windowPtr, key_callback);
-	glfwSetCursorPosCallback(m_windowPtr, mouse_callback);
-	glfwSetScrollCallback(m_windowPtr, scroll_callback);
+	glfwSetWindowSizeCallback(m_windowPtr, Callbacks::resize_callback);
+	glfwSetKeyCallback(m_windowPtr, Callbacks::key_callback);
+	glfwSetMouseButtonCallback(m_windowPtr, Callbacks::mouse_button_callback);
+	glfwSetCursorPosCallback(m_windowPtr, Callbacks::mouse_callback);
+	glfwSetScrollCallback(m_windowPtr, Callbacks::scroll_callback);
 	glfwMakeContextCurrent(m_windowPtr);
 
 	// Load OpenGL function pointers
@@ -41,12 +40,7 @@ Window::Window() {
 		return;
 	}
 
-	this->setViewport();
 	m_isOpen = true;
-}
-
-void Window::setViewport() {
-	glViewport(0, 0, m_width, m_height);
 }
 
 void Window::resize() {
@@ -55,27 +49,31 @@ void Window::resize() {
 
 void Window::setWidth(int width) {
 	if (!m_isOpen) return;
+
 	m_width = width;
 	this->resize();
 }
 
 void Window::setHeight(int height) {
 	if (!m_isOpen) return;
+
 	m_height = height;
 	this->resize();
 }
 
 void Window::setSize(int width, int height) {
 	if (!m_isOpen) return;
+
 	m_width = width;
 	m_height = height;
 	this->resize();
 }
 
-void Window::setTitle(const char* title) {
+void Window::setTitle(std::string title) {
 	if (!m_isOpen) return;
+
 	m_title = title;
-	glfwSetWindowTitle(m_windowPtr, m_title);
+	glfwSetWindowTitle(m_windowPtr, m_title.c_str());
 }
 
 void Window::setScreenMode(ScreenMode screenMode) {
@@ -106,56 +104,18 @@ void Window::setScreenMode(ScreenMode screenMode) {
 
 bool Window::shouldClose() {
 	if (!m_isOpen) return true;
+
 	bool close = glfwWindowShouldClose(m_windowPtr);
 	m_isOpen = !close;
 	return close;
 }
 
-void Window::clear() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
 void Window::update(float deltaTime) {
 	if (!m_isOpen) return;
+
 	glfwSwapBuffers(m_windowPtr);
 	input.clear();
 	glfwPollEvents();
-	processInput(deltaTime);
-}
-
-void Window::processInput(float deltaTime) {
-	if (input.isKeyDown("escape")) {
-		glfwSetWindowShouldClose(m_windowPtr, true);
-	}
-
-	if (input.isKeyDown("w")) {
-		camera.processKeyboard(CameraMovement::FORWARD, deltaTime);
-	}
-	if (input.isKeyDown("s")) {
-		camera.processKeyboard(CameraMovement::BACKWARD, deltaTime);
-	}
-	if (input.isKeyDown("a")) {
-		camera.processKeyboard(CameraMovement::LEFT, deltaTime);
-	}
-	if (input.isKeyDown("d")) {
-		camera.processKeyboard(CameraMovement::RIGHT, deltaTime);
-	}
-
-	MouseEvent e = input.getMouseInfo();
-	camera.processMouseMovement(e.posX, e.posY);
-
-	ScrollEvent e2 = input.getScrollInfo();
-	camera.processMouseScroll(e2.yoffset);
-
-	if (input.isKeyDown("mouse_left")) {
-		std::cout << "left clicking\n";
-	}
-	if (input.isKeyDown("mouse_right")) {
-		std::cout << "right clicking\n";
-	}
-	if (input.isKeyDown("mouse_middle")) {
-		std::cout << "middle clicking\n";
-	}
 }
 
 void Window::close() {
@@ -166,34 +126,33 @@ Window::~Window() {
 	glfwDestroyWindow(m_windowPtr);
 }
 
-void error_callback(int error, const char* description) {
-	std::cout << "GLFW Error: " + string(description) + "\n";
-}
-
-void resize_callback(GLFWwindow* windowPtr, int width, int height) {
+void Callbacks::resize_callback(GLFWwindow* windowPtr, int width, int height) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->m_width = width;
 	window->m_height = height;
-	window->setViewport();
 }
 
-void key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
+void Callbacks::key_callback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->input.pushKeyEvent(key, scancode, action, mods);
 }
 
-void mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
+void Callbacks::mouse_button_callback(GLFWwindow* windowPtr, int button, int action, int mods) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->input.pushMouseButtonEvent(button, action, mods);
 }
 
-void mouse_callback(GLFWwindow* windowPtr, double xpos, double ypos) {
+void Callbacks::mouse_callback(GLFWwindow* windowPtr, double xpos, double ypos) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->input.pushMouseEvent(xpos, ypos);
 }
 
-void scroll_callback(GLFWwindow* windowPtr, double xoffset, double yoffset) {
+void Callbacks::scroll_callback(GLFWwindow* windowPtr, double xoffset, double yoffset) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
 	window->input.pushScrollEvent(xoffset, yoffset);
 }
-}}
+
+void error_callback(int error, const char* description) {
+	std::cout << "GLFW Error: " + std::string(description) + "\n";
+}
+}

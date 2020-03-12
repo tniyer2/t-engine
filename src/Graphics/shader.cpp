@@ -2,23 +2,26 @@
 #include "shader.h";
 
 namespace TEngine { namespace Graphics {
+
+static constexpr const char* DIVIDER = " -- --------------------------------------------------- -- ";
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
-	string vertexCode;
-	string fragmentCode;
-	string geometryCode;
-	ifstream vShaderFile;
-	ifstream fShaderFile;
-	ifstream gShaderFile;
+	std::string vertexCode;
+	std::string fragmentCode;
+	std::string geometryCode;
+	std::ifstream vShaderFile;
+	std::ifstream fShaderFile;
+	std::ifstream gShaderFile;
 
 	// ensure ifstream objects can throw exceptions:
-	vShaderFile.exceptions(ifstream::failbit | ifstream::badbit);
-	fShaderFile.exceptions(ifstream::failbit | ifstream::badbit);
-	gShaderFile.exceptions(ifstream::failbit | ifstream::badbit);
+	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	try {
 		// open files
 		vShaderFile.open(vertexPath);
 		fShaderFile.open(fragmentPath);
-		stringstream vShaderStream, fShaderStream;
+		std::stringstream vShaderStream, fShaderStream;
 		// read file's buffer contents into streams
 		vShaderStream << vShaderFile.rdbuf();
 		fShaderStream << fShaderFile.rdbuf();
@@ -32,14 +35,14 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 		// if geometry shader path is present, also load a geometry shader
 		if (geometryPath != nullptr) {
 			gShaderFile.open(geometryPath);
-			stringstream gShaderStream;
+			std::stringstream gShaderStream;
 			gShaderStream << gShaderFile.rdbuf();
 			gShaderFile.close();
 			geometryCode = gShaderStream.str();
 		}
 	}
-	catch (ifstream::failure e) {
-		cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << endl;
+	catch (std::ifstream::failure e) {
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 	}
 
 	const char* vShaderCode = vertexCode.c_str();
@@ -69,14 +72,14 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 	}
 
 	// Shader Program
-	ID = glCreateProgram();
-	glAttachShader(ID, vertex);
-	glAttachShader(ID, fragment);
+	Id = shaderId(glCreateProgram());
+	glAttachShader((unsigned int)Id, vertex);
+	glAttachShader((unsigned int)Id, fragment);
 	if (geometryPath != nullptr) {
-		glAttachShader(ID, geometry);
+		glAttachShader((unsigned int)Id, geometry);
 	}
-	glLinkProgram(ID);
-	checkCompileErrors(ID, "PROGRAM");
+	glLinkProgram((unsigned int)Id);
+	checkCompileErrors((unsigned int)Id, "PROGRAM");
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
@@ -85,21 +88,23 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 	}
 }
 
-void Shader::checkCompileErrors(GLuint shader, string type) {
+void Shader::checkCompileErrors(GLuint shader, std::string type) {
 	GLint success;
 	GLchar infoLog[1024];
 	if (type != "PROGRAM") {
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-			cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << endl;
+			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" <<
+				infoLog << "\n" << DIVIDER << std::endl;
 		}
 	}
 	else {
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-			cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << endl;
+			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" <<
+				infoLog << "\n" << DIVIDER << std::endl;
 		}
 	}
 }

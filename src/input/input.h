@@ -7,11 +7,6 @@
 #include <vector>
 #include <map>
 
-using std::string;
-using std::array;
-using std::vector;
-using std::map;
-
 namespace TEngine { namespace NS_Input {
 
 enum class KeyState {
@@ -36,62 +31,59 @@ struct KeyEvent : InputEvent {
 	unsigned char keycode;
 	KeyState state;
 	unsigned char mods;
-	string character;
+	std::string character;
 
-	KeyEvent(unsigned char a)
-		: keycode(a), state(KeyState::none), mods(0), character("") {}
-	KeyEvent(unsigned char a, KeyState b, unsigned char c, string d)
-		: keycode(a), state(b), mods(c), character(d) {}
+	KeyEvent(unsigned char keycode)
+		: keycode(keycode), state(KeyState::none), mods(0), character("") { }
+	KeyEvent(unsigned char keycode, KeyState state, unsigned char mods, std::string character)
+		: keycode(keycode), state(state), mods(mods), character(character) { }
 };
 
 struct MouseEvent : InputEvent {
 	float posX, posY;
 	MouseEvent()
-		: posX(0), posY(0) {}
-	MouseEvent(float a, float b)
-		: posX(a), posY(b) {}
+		: posX(0), posY(0) { }
+	MouseEvent(float x, float y)
+		: posX(x), posY(y) { }
 };
 
 struct ScrollEvent : InputEvent {
 	float xoffset, yoffset;
 	ScrollEvent()
-		: xoffset(0), yoffset(0) {}
-	ScrollEvent(float a, float b)
-		: xoffset(a), yoffset(b) {}
+		: xoffset(0), yoffset(0) { }
+	ScrollEvent(float x, float y)
+		: xoffset(x), yoffset(y) { }
 };
 
 KeyState translate_key_action(int action);
-map<int, int> get_key_translations();
-map<string, int> get_text_translations();
+std::map<int, int> get_key_translations();
+std::map<std::string, int> get_text_translations();
 
 class Input {
+private:
+	std::array<char, 98> m_keys;
+	std::vector<KeyEvent> m_keyEvents;
+	std::map<int, int> m_glfwToKey; // Maps GLFW key codes to a contiguous range for convenience.
+	std::map<std::string, int> m_textToKey; // Maps strings to (not GLFW) key codes.
+	MouseEvent m_mouseEvent;
+	ScrollEvent m_scrollEvent;
 public:
 	Input();
-
 	Input(const Input&) = delete;
 	void operator=(const Input&) = delete;
 
 	void clear();
+
 	void pushKeyEvent(int, int, int, int);
 	void pushMouseButtonEvent(int, int, int);
 	void pushMouseEvent(double, double);
 	void pushScrollEvent(double, double);
-	KeyEvent pollKey(string);
-	bool isKeyDown(string);
 
-	inline MouseEvent getMouseInfo() {
-		return m_mouseEvent;
-	}
-	inline ScrollEvent getScrollInfo() {
-		return m_scrollEvent;
-	}
-private:
-	array<char, 98> m_keys;
-	vector<KeyEvent> m_keyEvents;
-	map<int, int> m_glfwToKey; // Maps GLFW key codes to a contiguous range for convenience.
-	map<string, int> m_textToKey; // Maps strings to (not GLFW) key codes.
-	MouseEvent m_mouseEvent;
-	ScrollEvent m_scrollEvent;
+	KeyEvent pollKey(std::string);
+	bool isKeyDown(std::string);
+
+	MouseEvent getMouseInfo() { return m_mouseEvent; }
+	ScrollEvent getScrollInfo() { return m_scrollEvent; }
 };
 }}
 #endif

@@ -1,62 +1,56 @@
 
+#ifndef GRAPHICS_RENDERER_H
+#define GRAPHICS_RENDERER_H
+
 #include "../core/core.h"
+#include "../core/pool.h"
 #include "window.h"
-#include "model.h"
+#include "mesh.h"
 
-#include <string>
 #include <vector>
-using std::string;
-using std::vector;
 
-using TEngine::Core::entity;
-using TEngine::Core::IComponent;
-using TEngine::Core::ComponentArray;
+namespace TEngine::Graphics {
 
-#ifndef RENDERER_H
-#define RENDERER_H
+struct MeshComponent {
+	meshId mesh;
+};
 
-namespace TEngine { namespace Graphics {
+using MeshPool = Core::ComponentAllocator<MeshComponent>;
+using MeshArray = Core::PooledComponentArray<MeshComponent>;
 
-class MeshComponent : public IComponent {
-public:
-	Model* model;
-	MeshComponent() {}
+struct RendererData {
+	Window window;
+	MeshPool allocator;
+	MeshArray meshArray;
+
+	RendererData(Core::IRootAllocator& root) : allocator(root), meshArray(allocator) { }
 };
 
 class Renderer {
+private:
+	inline static Renderer* instance = nullptr;
+	inline static bool running = false;
+
+	RendererData* m_data = nullptr;
 public:
-	Renderer() {}
-
-	inline void startUp() {
-		if (running) return;
-		running = true;
-		pStartUp();
-	}
-	inline void shutDown() {
-		if (!running) return;
-		running = false;
-		pShutDown();
-	}
-	inline void update(float deltaTime) {
-		if (!running) return;
-		pUpdate(deltaTime);
-
+	static Renderer& getInstance() {
+		assert(instance);
+		return *instance;
 	}
 
+	Renderer() {
+		assert(!instance);
+		instance = this;
+	}
 	Renderer(const Renderer&) = delete;
 	void operator=(const Renderer&) = delete;
 
-	inline Window& getWindow() { return *m_window; }
-	inline ComponentArray<MeshComponent>* getMeshComponents() { return m_meshComponents; }
-private:
-	static bool running;
-	Window* m_window = nullptr;
-	ComponentArray<MeshComponent>* m_meshComponents = nullptr;
+	void startUp();
+	void shutDown();
+	void update(float);
 
-	void pStartUp();
-	void pShutDown();
-	void pUpdate(float);
+	Window& getWindow() { return m_data->window; }
+	MeshArray& getMeshArray() { return m_data->meshArray; }
 };
-}}
-
+}
 #endif

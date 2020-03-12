@@ -1,13 +1,18 @@
 
 #include "mesh.h"
 
-namespace TEngine { namespace Graphics {
-Mesh::Mesh(vector<Vertex> v, vector<unsigned int> i, vector<Texture> t)
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
+namespace TEngine::Graphics {
+
+Mesh::Mesh(std::vector<Vertex> v, std::vector<unsigned int> i, std::vector<Texture> t)
 	: vertices(v), indices(i), textures(t) {
 	setupMesh();
 }
 
-void Mesh::draw(Shader shader) {
+void Mesh::draw(const Shader& shader) {
 	// bind appropriate textures
 	unsigned int diffuseNr = 1;
 	unsigned int specularNr = 1;
@@ -19,23 +24,23 @@ void Mesh::draw(Shader shader) {
 		glActiveTexture(GL_TEXTURE0 + i);
 
 		// retrieve texture number (the N in diffuse_textureN)
-		string number = "";
-		string name = textures[i].type;
+		std::string number = "";
+		std::string name = textures[i].type;
 		if (name == "texture_diffuse") {
-			number = to_string(diffuseNr++);
+			number = std::to_string(diffuseNr++);
 		}
 		else if (name == "texture_specular") {
-			number = to_string(specularNr++);
+			number = std::to_string(specularNr++);
 		}
 		else if (name == "texture_normal") {
-			number = to_string(normalNr++);
+			number = std::to_string(normalNr++);
 		}
 		else if (name == "texture_height") {
-			number = to_string(heightNr++);
+			number = std::to_string(heightNr++);
 		}
 
 		// set sampler
-		glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+		glUniform1i(glGetUniformLocation((unsigned int)shader.Id, (name + number).c_str()), i);
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 
@@ -80,4 +85,4 @@ void Mesh::setupMesh() {
 
 	glBindVertexArray(0);
 }
-}}
+}

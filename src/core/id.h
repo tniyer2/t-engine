@@ -1,29 +1,25 @@
 
-#ifndef ID_H
-#define ID_H
+#ifndef CORE_ID_H
+#define CORE_ID_H
 
-namespace TEngine { namespace Core {
+namespace TEngine::Core {
 	template<class Tag, class T, T default_value>
-	class ID {
+	class Id {
 	private:
 		T m_val;
 	public:
-		// returns ID with default_value
-		static ID invalid() { return ID(); }
+		static Id invalid() { return Id(); }
 
-		ID() : m_val(default_value) { }
+		Id() : m_val(default_value) { }
+		explicit Id(T val) : m_val(val) { }
 
-		// Explicit constructor
-		explicit ID(T val) : m_val(val) { }
-
-		// Explicit conversion to get back the T
 		explicit operator T() const { return m_val; }
 
-		friend bool operator==(ID a, ID b) { return a.m_val == b.m_val; }
-		friend bool operator!=(ID a, ID b) { return a.m_val != b.m_val; }
+		friend bool operator==(Id a, Id b) { return a.m_val == b.m_val; }
+		friend bool operator!=(Id a, Id b) { return a.m_val != b.m_val; }
 	};
 
 	struct entity_tag {};
-	typedef ID<entity_tag, unsigned int, 0> entity;
-}}
+	using entity = Id<entity_tag, unsigned int, 0>;
+}
 #endif

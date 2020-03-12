@@ -1,7 +1,6 @@
 
-#include <stdlib.h>
-#include <cassert>
 #include "memory.h"
+#include <stdlib.h>
 
 namespace TEngine { namespace Core {
 
@@ -19,10 +18,11 @@ void* align(void* p_ptr) {
 }
 
 void* RootAllocator::allocate(size_t size) {
-	return malloc(size);
+	return malloc(align(size));
 }
 
 void RootAllocator::free(void* ptr) {
+	assert(ptr == align(ptr));
 	::free(ptr);
 }
 }}

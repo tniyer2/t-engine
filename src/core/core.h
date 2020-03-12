@@ -2,97 +2,166 @@
 #ifndef CORE_H
 #define CORE_H
 
-#include <atomic>
-
-#include <unordered_map>
-#include <map>
-#include <vector>
-using std::unordered_map;
-using std::map;
-using std::vector;
-
 #include "id.h"
-#include "memory.h"
+#include "pool.h"
 
-namespace TEngine { namespace Core {
+#include <atomic>
+#include <vector>
+#include <map>
 
-class EntityManager {
+namespace TEngine::Core {
+
+class TU_IComponentArray {
 public:
-	EntityManager() {}
-	EntityManager(const EntityManager&) = delete;
-	void operator=(const EntityManager&) = delete;
-
-	void startUp() {}
-	void shutDown() {}
-
-	entity createEntity() {
-		return entity(++m_entityIdCounter);
-	}
-private:
-	unsigned int m_entityIdCounter = 0;
+	virtual bool hasComponent(entity) = 0;
+	virtual bool removeComponent(entity) = 0;
+	virtual bool removeIfComponent(entity) = 0;
 };
-
-class IComponent {
-public:
-	entity entity;
-};
-
-class IComponentArray {};
 
 template<typename T>
-class ComponentArray : public IComponentArray {
-public:
-	ComponentArray() {}
+class IComponentArray : public TU_IComponentArray {
+	virtual ComponentPtr<T> getComponent(entity) = 0;
+	virtual ComponentPtr<T> addComponent(entity) = 0;
+};
 
-	T* getComponent(entity e) {
-		return nullptr;
+template<typename T>
+class PooledComponentArray : public IComponentArray<T> {
+private:
+	ComponentAllocator<T>& m_allocator;
+public:
+	PooledComponentArray(ComponentAllocator<T>& a) : m_allocator(a) { }
+
+	virtual bool hasComponent(entity e) {
+		return m_allocator.has(e);
 	}
 
-	T* addComponent(entity e) {
-		return nullptr;
+	virtual ComponentPtr<T> getComponent(entity e) {
+		return ComponentPtr<T>(m_allocator, e);
+	}
+
+	virtual ComponentPtr<T> addComponent(entity e) {
+		assert(m_allocator.allocate(e));
+		return ComponentPtr<T>(m_allocator, e);
+	}
+
+	virtual bool removeComponent(entity e) {
+		bool freed = m_allocator.free(e);
+		assert(freed);
+		return freed;
+	}
+
+	virtual bool removeIfComponent(entity e) {
+		return m_allocator.has(e) ?
+			PooledComponentArray::removeComponent(e) : true;
 	}
 };
 
 class ComponentManager {
+private:
+	inline static ComponentManager* instance = nullptr;
+	inline static std::atomic_int typeIdCounter = std::atomic_int(1);
+
+	std::vector<TU_IComponentArray*> m_arrays;
 public:
-	ComponentManager() {}
-	~ComponentManager() {}
+	static ComponentManager& getInstance() {
+		assert(instance);
+		return *instance;
+	}
 
-	void startUp() {}
-	void shutDown() {}
-
+	ComponentManager() {
+		assert(!instance);
+		instance = this;
+	}
 	ComponentManager(const ComponentManager&) = delete;
 	void operator=(const ComponentManager&) = delete;
 
+	void startUp() { }
+	void shutDown() { }
+	void update(float) { }
+
 	template<typename T>
-	void registerComponentArray(IComponentArray* arr) {
-		m_map[getTypeId<T>()] = arr;
+	bool registerComponentArray(IComponentArray<T>& arr) {
+		int id = getTypeId<T>();
+		bool newId = id + 1 == ComponentManager::typeIdCounter;
+		assert(newId);
+
+		if (!newId) return false;
+		m_arrays.push_back(&arr);
+		return true;
 	}
 
 	template<typename T>
-	T* getComponent(entity e) {
-		return getComponentArray<T>()->getComponent(e);
+	bool hasComponent(entity e) {
+		return getComponentArray<T>().hasComponent(e);
 	}
 
 	template<typename T>
-	T* setComponent(entity e) {
-		return getComponentArray<T>()->setComponent(e);
+	ComponentPtr<T> getComponent(entity e) {
+		return getComponentArray<T>().getComponent(e);
+	}
+
+	template<typename T>
+	ComponentPtr<T> setComponent(entity e) {
+		return getComponentArray<T>().addComponent(e);
+	}
+
+	template<typename T>
+	bool removeComponent(entity e) {
+		return getComponentArray<T>().removeComponent(e);
+	}
+
+	template<typename T>
+	bool removeIfComponent(entity e) {
+		return getComponentArray<T>().removeIfComponent(e);
+	}
+
+	void removeAllComponents(entity e) {
+		for (auto it = m_arrays.begin(); it != m_arrays.end(); ++it) {
+			(*it)->removeIfComponent(e);
+		}
 	}
 private:
-	static std::atomic_int typeIdCounter;
-	unordered_map<int, IComponentArray*> m_map;
-
 	template<typename T>
-	int getTypeId() {
-		static const int id = ++typeIdCounter;
+	static int getTypeId() {
+		static const int id = typeIdCounter++;
 		return id;
 	}
 
 	template<typename T>
-	ComponentArray<T>* getComponentArray() {
-		return static_cast<ComponentArray<T>*>(m_map[getTypeId<T>()]);
+	IComponentArray<T>& getComponentArray() {
+		int id = getTypeId<T>();
+		assert(id < m_arrays.size());
+		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[id]);
+		assert(ptr);
+		return *ptr;
 	}
 };
-}}
+
+class EntityManager {
+private:
+	inline static EntityManager* instance = nullptr;
+	inline static unsigned int entityIdCounter = 1;
+
+	std::map<unsigned int, bool> m_destroyMap;
+public:
+	static EntityManager& getInstance() {
+		assert(instance);
+		return *instance;
+	}
+
+	EntityManager() {
+		assert(!instance);
+		instance = this;
+	}
+	EntityManager(const EntityManager&) = delete;
+	void operator=(const EntityManager&) = delete;
+
+	void startUp() { }
+	void shutDown() { }
+	void update(float);
+
+	entity create() { return entity(EntityManager::entityIdCounter++); }
+	bool destroy(entity);
+};
+}
 #endif
- 
