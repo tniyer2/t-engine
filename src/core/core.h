@@ -20,6 +20,7 @@ public:
 
 template<typename T>
 class IComponentArray : public TU_IComponentArray {
+public:
 	virtual ComponentPtr<T> getComponent(entity) = 0;
 	virtual ComponentPtr<T> addComponent(entity) = 0;
 };
@@ -40,7 +41,8 @@ public:
 	}
 
 	virtual ComponentPtr<T> addComponent(entity e) {
-		assert(m_allocator.allocate(e));
+		bool allocated = m_allocator.allocate(e);
+		assert(allocated);
 		return ComponentPtr<T>(m_allocator, e);
 	}
 
@@ -101,7 +103,7 @@ public:
 	}
 
 	template<typename T>
-	ComponentPtr<T> setComponent(entity e) {
+	ComponentPtr<T> addComponent(entity e) {
 		return getComponentArray<T>().addComponent(e);
 	}
 
@@ -122,7 +124,7 @@ public:
 	}
 private:
 	template<typename T>
-	static int getTypeId() {
+	int getTypeId() {
 		static const int id = typeIdCounter++;
 		return id;
 	}
@@ -130,8 +132,9 @@ private:
 	template<typename T>
 	IComponentArray<T>& getComponentArray() {
 		int id = getTypeId<T>();
-		assert(id < m_arrays.size());
-		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[id]);
+		assert(id < typeIdCounter);
+		std::cout << "id: " << id << "\n";
+		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[id-1]);
 		assert(ptr);
 		return *ptr;
 	}

@@ -8,6 +8,7 @@ void Renderer::startUp() {
 	if (!Utility::toggle<true>(running)) return;
 
 	m_data = new RendererData(Core::RootAllocator::getInstance());
+	m_data->allocator.reserve(100);
 
 	Core::ComponentManager::getInstance().registerComponentArray<MeshComponent>(
 		(Core::IComponentArray<MeshComponent>&)m_data->meshArray);

@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="src\core\core.cpp" />
     <ClCompile Include="src\core\memory.cpp" />
+    <ClCompile Include="src\core\stack.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Graphics\camera.cpp" />
     <ClCompile Include="src\Graphics\mesh.cpp" />
@@ -149,6 +150,7 @@
     <ClInclude Include="src\core\id.h" />
     <ClInclude Include="src\core\memory.h" />
     <ClInclude Include="src\core\pool.h" />
+    <ClInclude Include="src\core\stack.h" />
     <ClInclude Include="src\Graphics\camera.h" />
     <ClInclude Include="src\Graphics\mesh.h" />
     <ClInclude Include="src\Graphics\model.h" />
