@@ -3,7 +3,7 @@
 #define CORE_H
 
 #include "id.h"
-#include "pool.h"
+#include "component_pool.h"
 
 #include <atomic>
 #include <vector>
@@ -18,19 +18,19 @@ public:
 	virtual bool removeIfComponent(entity) = 0;
 };
 
-template<typename T>
+template<class T>
 class IComponentArray : public TU_IComponentArray {
 public:
 	virtual ComponentPtr<T> getComponent(entity) = 0;
 	virtual ComponentPtr<T> addComponent(entity) = 0;
 };
 
-template<typename T>
+template<class T>
 class PooledComponentArray : public IComponentArray<T> {
 private:
-	ComponentAllocator<T>& m_allocator;
+	PooledComponentAllocator<T>& m_allocator;
 public:
-	PooledComponentArray(ComponentAllocator<T>& a) : m_allocator(a) { }
+	PooledComponentArray(PooledComponentAllocator<T>& a) : m_allocator(a) { }
 
 	virtual bool hasComponent(entity e) {
 		return m_allocator.has(e);
@@ -133,7 +133,6 @@ private:
 	IComponentArray<T>& getComponentArray() {
 		int id = getTypeId<T>();
 		assert(id < typeIdCounter);
-		std::cout << "id: " << id << "\n";
 		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[id-1]);
 		assert(ptr);
 		return *ptr;

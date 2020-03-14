@@ -3,7 +3,7 @@
 #define GRAPHICS_RENDERER_H
 
 #include "../core/core.h"
-#include "../core/pool.h"
+#include "../core/component_pool.h"
 #include "window.h"
 #include "mesh.h"
 
@@ -15,7 +15,7 @@ struct MeshComponent {
 	meshId mesh;
 };
 
-using MeshPool = Core::ComponentAllocator<MeshComponent>;
+using MeshPool = Core::PooledComponentAllocator<MeshComponent>;
 using MeshArray = Core::PooledComponentArray<MeshComponent>;
 
 struct RendererData {

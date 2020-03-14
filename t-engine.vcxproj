@@ -146,10 +146,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stb_image.h" />
+    <ClInclude Include="src\core\component.h" />
     <ClInclude Include="src\core\core.h" />
     <ClInclude Include="src\core\id.h" />
     <ClInclude Include="src\core\memory.h" />
-    <ClInclude Include="src\core\pool.h" />
+    <ClInclude Include="src\core\component_pool.h" />
     <ClInclude Include="src\core\stack.h" />
     <ClInclude Include="src\Graphics\camera.h" />
     <ClInclude Include="src\Graphics\mesh.h" />

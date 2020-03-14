@@ -31,20 +31,7 @@ int main() {
 
 	Graphics::Window& gWindow = gRenderer.getWindow();
 
-	gComponentManager.addComponent<Graphics::MeshComponent>(Core::entity(1));
-
-	/* Testing Linear Allocator*/
-	Core::LinearAllocator stack(gRootAllocator);
-	assert(sizeof(A) == 16);
-	assert(ceil(10000, sizeof(A)) == 625);
-	stack.reserve(9993);
-	for (unsigned int i = 0; i < ceil(10000, sizeof(A)); ++i) {
-		void* ptr = stack.allocate(sizeof(A));
-		assert(ptr);
-		A* a = new (ptr) A{(float)i, 2, 3, 4};
-		std::cout << a->d << "\n";
-	}
-	/* end of test */
+	auto m = gComponentManager.addComponent<Graphics::MeshComponent>(Core::entity(1));
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
