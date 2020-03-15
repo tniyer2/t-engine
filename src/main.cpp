@@ -1,6 +1,7 @@
 
 #include "core/core.h"
 #include "core/script.h"
+#include "core/resource.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
 #include "utility/timer.h"
@@ -43,6 +44,9 @@ int main() {
 	Core::RootAllocator gRootAllocator;
 	gRootAllocator.startUp();
 
+	Core::ResourceManager gResourceManager;
+	gResourceManager.startUp();
+
 	Core::ComponentManager gComponentManager;
 	gComponentManager.startUp();
 
@@ -79,6 +83,7 @@ int main() {
 	gEntityManager.shutDown();
 	gScriptManager.shutDown();
 	gComponentManager.shutDown();
+	gResourceManager.shutDown();
 	gRootAllocator.shutDown();
 
 	return 0;
