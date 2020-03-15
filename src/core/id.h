@@ -3,23 +3,26 @@
 #define CORE_ID_H
 
 namespace TEngine::Core {
-	template<class Tag, class T, T default_value>
-	class Id {
-	private:
-		T m_val;
-	public:
-		static Id invalid() { return Id(); }
 
-		Id() : m_val(default_value) { }
-		explicit Id(T val) : m_val(val) { }
+template<class Tag, class T, T default_value>
+class Id {
+private:
+	T m_val;
+public:
+	static Id invalid() { return Id(); }
 
-		explicit operator T() const { return m_val; }
+	Id() : m_val(default_value) { }
+	explicit Id(T val) : m_val(val) { }
 
-		friend bool operator==(Id a, Id b) { return a.m_val == b.m_val; }
-		friend bool operator!=(Id a, Id b) { return a.m_val != b.m_val; }
-	};
+	explicit operator T() const { return m_val; }
 
-	struct entity_tag {};
-	using entity = Id<entity_tag, unsigned int, 0>;
+	friend bool operator<(Id a, Id b) { return a.m_val < b.m_val; }
+
+	friend bool operator==(Id a, Id b) { return a.m_val == b.m_val; }
+	friend bool operator!=(Id a, Id b) { return a.m_val != b.m_val; }
+};
+
+struct entity_tag {};
+using entity = Id<entity_tag, unsigned int, 0>;
 }
 #endif

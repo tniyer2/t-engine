@@ -1,20 +1,47 @@
 
 #include "core/core.h"
+#include "core/script.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
-#include "core/stack.h"
+
+#include <windows.h>
 
 using namespace TEngine;
 
-double FRAME_RATE = 1.0 / 60.0;
+float FRAME_RATE = 1.0 / 60.0; // frame rate in seconds
+float MAX_FRAME_RATE = 0.25; // maximum frame rate in seconds
 
-struct A {
-	float a, b, c, d;
+using Graphics::MeshComponent;
+
+class Player : public Core::Script {
+private:
+	Core::ComponentPtr<MeshComponent> m_mesh;
+	float m_time = 0;
+	float m_time2 = 0;
+public:
+	using Core::Script::Script;
+
+	void Awake() override {
+		auto& compM = Core::ComponentManager::getInstance();
+		m_mesh = compM.getComponent<MeshComponent>(entity);
+	}
+
+	void Update(float deltaTime) override {
+		m_time += deltaTime;
+		m_time2 += deltaTime;
+
+		// std::cout << "delta time from player: " << deltaTime << "\n";
+		if (m_time > 3.0) {
+			m_time = 0;
+			// std::cout << "delta time from player: " << deltaTime << "\n";
+			// std::cout << "mesh id: " << (unsigned int)m_mesh->mesh << "\n";
+		}
+		if (m_time2 > 10.0) {
+			m_time2 = 0;
+			// Sleep(3000);
+		}
+	}
 };
-
-size_t ceil(size_t a, size_t b) {
-	return (a + b - 1) / b;
-}
 
 int main() {
 	Core::RootAllocator gRootAllocator;
@@ -22,6 +49,9 @@ int main() {
 
 	Core::ComponentManager gComponentManager;
 	gComponentManager.startUp();
+
+	Core::ScriptManager gScriptManager;
+	gScriptManager.startUp();
 
 	Core::EntityManager gEntityManager;
 	gEntityManager.startUp();
@@ -31,7 +61,10 @@ int main() {
 
 	Graphics::Window& gWindow = gRenderer.getWindow();
 
-	auto m = gComponentManager.addComponent<Graphics::MeshComponent>(Core::entity(1));
+	Core::entity e = gEntityManager.create();
+	auto m_mesh = gComponentManager.addComponent<MeshComponent>(e);
+	m_mesh->mesh = Graphics::meshId(20);
+	gScriptManager.addScript<Player>(e);
 
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
@@ -41,16 +74,21 @@ int main() {
 		if (deltaTime < FRAME_RATE) {
 			continue;
 		}
+		if (deltaTime >= MAX_FRAME_RATE) {
+			deltaTime = FRAME_RATE;
+		}
 		lastFrame = curFrame;
 
 		gRootAllocator.update(deltaTime);
 		gComponentManager.update(deltaTime);
+		gScriptManager.update(deltaTime);
 		gEntityManager.update(deltaTime);
 		gRenderer.update(deltaTime);
 	}
 
 	gRenderer.shutDown();
 	gEntityManager.shutDown();
+	gScriptManager.shutDown();
 	gComponentManager.shutDown();
 	gRootAllocator.shutDown();
 

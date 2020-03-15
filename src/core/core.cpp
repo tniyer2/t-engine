@@ -1,12 +1,17 @@
 
 #include "core.h"
+#include "script.h"
 
 namespace TEngine::Core {
 
 void EntityManager::update(float deltaTime) {
-	ComponentManager& instance = ComponentManager::getInstance();
+	ComponentManager& compM = ComponentManager::getInstance();
+	ScriptManager& scriptM = ScriptManager::getInstance();
+
 	for (auto it = m_destroyMap.begin(); it != m_destroyMap.end(); ++it) {
-		instance.removeAllComponents(entity(it->first));
+		entity e = entity(it->first);
+		scriptM.removeIfScript(e);
+		compM.removeAllComponents(e);
 		m_destroyMap.erase(it);
 	}
 }

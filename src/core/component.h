@@ -22,27 +22,38 @@ public:
 template<class T>
 class ComponentPtr {
 private:
-	IComponentAllocator<T>& m_allocator;
+	IComponentAllocator<T>* m_allocator = nullptr;
 	entity m_entity;
 public:
-	ComponentPtr(IComponentAllocator<T>& a, entity e) : m_allocator(a), m_entity(e) {
+	ComponentPtr() { }
+
+	ComponentPtr(IComponentAllocator<T>& a, entity e)
+		: m_allocator(&a), m_entity(e) {
 		assert(m_entity != entity::invalid());
 	}
 
+	operator bool() {
+		return m_allocator && m_allocator->has(m_entity);
+	}
+
 	T* operator->() {
-		return m_allocator.get(m_entity);
+		assert(m_allocator);
+		return m_allocator->get(m_entity);
 	}
 	const T* operator->() const {
-		return m_allocator.get(m_entity);
+		assert(m_allocator);
+		return m_allocator->get(m_entity);
 	}
 
 	T& operator*() {
-		T* ptr = m_allocator.get(m_entity);
+		assert(m_allocator);
+		T* ptr = m_allocator->get(m_entity);
 		assert(ptr);
 		return *ptr;
 	}
 	const T& operator*() const {
-		T* ptr = m_allocator.get(m_entity);
+		assert(m_allocator);
+		T* ptr = m_allocator->get(m_entity);
 		assert(ptr);
 		return *ptr;
 	}
