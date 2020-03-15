@@ -3,14 +3,10 @@
 #include "core/script.h"
 #include "graphics/renderer.h"
 #include "graphics/window.h"
-
+#include "utility/timer.h"
 #include <windows.h>
 
 using namespace TEngine;
-
-float FRAME_RATE = 1.0 / 60.0; // frame rate in seconds
-float MAX_FRAME_RATE = 0.25; // maximum frame rate in seconds
-
 using Graphics::MeshComponent;
 
 class Player : public Core::Script {
@@ -33,7 +29,7 @@ public:
 		// std::cout << "delta time from player: " << deltaTime << "\n";
 		if (m_time > 3.0) {
 			m_time = 0;
-			// std::cout << "delta time from player: " << deltaTime << "\n";
+			std::cout << "delta time from player: " << deltaTime << "\n";
 			// std::cout << "mesh id: " << (unsigned int)m_mesh->mesh << "\n";
 		}
 		if (m_time2 > 10.0) {
@@ -66,18 +62,11 @@ int main() {
 	m_mesh->mesh = Graphics::meshId(20);
 	gScriptManager.addScript<Player>(e);
 
+	Utility::Timer timer;
+
 	float deltaTime = 0.0f;
-	float lastFrame = 0.0f;
 	while (!gWindow.shouldClose()) {
-		float curFrame = (float)glfwGetTime();
-		deltaTime = curFrame - lastFrame;
-		if (deltaTime < FRAME_RATE) {
-			continue;
-		}
-		if (deltaTime >= MAX_FRAME_RATE) {
-			deltaTime = FRAME_RATE;
-		}
-		lastFrame = curFrame;
+		if ((deltaTime = timer.step((float)glfwGetTime())) == 0) continue;
 
 		gRootAllocator.update(deltaTime);
 		gComponentManager.update(deltaTime);

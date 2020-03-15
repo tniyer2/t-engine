@@ -11,6 +11,7 @@
 
 namespace TEngine::Core {
 
+// Type Unsafe base class of IComponentArray
 class TU_IComponentArray {
 public:
 	virtual bool hasComponent(entity) = 0;
@@ -65,15 +66,9 @@ private:
 
 	std::vector<TU_IComponentArray*> m_arrays;
 public:
-	static ComponentManager& getInstance() {
-		assert(instance);
-		return *instance;
-	}
+	static ComponentManager& getInstance();
 
-	ComponentManager() {
-		assert(!instance);
-		instance = this;
-	}
+	ComponentManager();
 	ComponentManager(const ComponentManager&) = delete;
 	void operator=(const ComponentManager&) = delete;
 
@@ -146,15 +141,9 @@ private:
 
 	std::map<unsigned int, bool> m_destroyMap;
 public:
-	static EntityManager& getInstance() {
-		assert(instance);
-		return *instance;
-	}
+	static EntityManager& getInstance();
 
-	EntityManager() {
-		assert(!instance);
-		instance = this;
-	}
+	EntityManager();
 	EntityManager(const EntityManager&) = delete;
 	void operator=(const EntityManager&) = delete;
 
@@ -162,7 +151,11 @@ public:
 	void shutDown() { }
 	void update(float);
 
-	entity create() { return entity(EntityManager::entityIdCounter++); }
+	// returns a new entity and increments the counter.
+	entity create() {
+		return entity(EntityManager::entityIdCounter++);
+	}
+	// marks entity for destruction next frame
 	bool destroy(entity);
 };
 }

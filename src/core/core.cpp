@@ -1,8 +1,29 @@
 
 #include "core.h"
 #include "script.h"
+#include <cassert>
 
 namespace TEngine::Core {
+
+ComponentManager& ComponentManager::getInstance() {
+	assert(instance);
+	return *instance;
+}
+
+ComponentManager::ComponentManager() {
+	assert(!instance);
+	instance = this;
+}
+
+EntityManager& EntityManager::getInstance() {
+	assert(instance);
+	return *instance;
+}
+
+EntityManager::EntityManager() {
+	assert(!instance);
+	instance = this;
+}
 
 void EntityManager::update(float deltaTime) {
 	ComponentManager& compM = ComponentManager::getInstance();

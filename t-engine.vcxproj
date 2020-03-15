@@ -144,6 +144,7 @@
     <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utility\glm_to_string.cpp" />
+    <ClCompile Include="src\utility\timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stb_image.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="src\input\input.h" />
     <ClInclude Include="src\utility\boolean.h" />
     <ClInclude Include="src\utility\glm_to_string.h" />
+    <ClInclude Include="src\utility\timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
