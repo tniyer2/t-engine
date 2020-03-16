@@ -8,11 +8,11 @@
 
 namespace TEngine::Core {
 
-using index_t = unsigned short;
-static constexpr index_t INVALID_INDEX = (index_t)-1;
-
 template<class T>
 class PooledComponentAllocator : public IComponentAllocator<T> {
+	using index_t = unsigned short;
+	constexpr static index_t INVALID_INDEX = (index_t)-1;
+
 	struct FreeBlock {};
 	struct LinkedBlock {
 		index_t next = INVALID_INDEX;
@@ -530,7 +530,6 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 private:
 	using IComponentAllocator<T>::m_allocator;
 	using IComponentAllocator<T>::m_count;
-
 	bool m_running = true;
 public:
 	PooledComponentAllocator(IRootAllocator& a) : IComponentAllocator<T>(a) { }

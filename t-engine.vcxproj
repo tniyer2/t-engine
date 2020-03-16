@@ -141,6 +141,7 @@
     <ClCompile Include="src\graphics\renderer.cpp" />
     <ClCompile Include="src\Graphics\shader.cpp" />
     <ClCompile Include="src\Graphics\stb_image_def.cpp" />
+    <ClCompile Include="src\graphics\transform.cpp" />
     <ClCompile Include="src\Graphics\window.cpp" />
     <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="src\Graphics\model.h" />
     <ClInclude Include="src\graphics\renderer.h" />
     <ClInclude Include="src\Graphics\shader.h" />
+    <ClInclude Include="src\graphics\transform.h" />
     <ClInclude Include="src\Graphics\window.h" />
     <ClInclude Include="src\input\input.h" />
     <ClInclude Include="src\utility\boolean.h" />

@@ -28,7 +28,7 @@ public:
 
 template<class T>
 class PooledComponentArray : public IComponentArray<T> {
-private:
+protected:
 	PooledComponentAllocator<T>& m_allocator;
 public:
 	PooledComponentArray(PooledComponentAllocator<T>& a) : m_allocator(a) { }
