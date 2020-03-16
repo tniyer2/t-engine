@@ -32,6 +32,7 @@ private:
 	inline static bool running = false;
 
 	RendererData* m_data = nullptr;
+	float m_time = 0;
 public:
 	static Renderer& getInstance() {
 		assert(instance);

@@ -8,6 +8,7 @@
 #include <windows.h>
 
 using namespace TEngine;
+using Core::entity;
 using Graphics::MeshComponent;
 
 class Player : public Core::Script {
@@ -40,6 +41,15 @@ public:
 	}
 };
 
+void createMeshComponent(unsigned int e) {
+	auto ptr = Core::ComponentManager::getInstance().addComponent<MeshComponent>(entity(e));
+	ptr->mesh = Graphics::meshId(e);
+}
+
+void removeMeshComponent(unsigned int e) {
+	Core::ComponentManager::getInstance().removeComponent<MeshComponent>(entity(e));
+}
+
 int main() {
 	Core::RootAllocator gRootAllocator;
 	gRootAllocator.startUp();
@@ -61,10 +71,14 @@ int main() {
 
 	Graphics::Window& gWindow = gRenderer.getWindow();
 
-	Core::entity e = gEntityManager.create();
+	entity e = gEntityManager.create();
 	auto m_mesh = gComponentManager.addComponent<MeshComponent>(e);
 	m_mesh->mesh = Graphics::meshId(20);
 	gScriptManager.addScript<Player>(e);
+
+	createMeshComponent(12);
+	createMeshComponent(2);
+	removeMeshComponent(12);
 
 	Utility::Timer timer;
 

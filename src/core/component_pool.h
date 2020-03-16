@@ -3,16 +3,16 @@
 #define CORE_COMPONENT_POOL_H
 
 #include "component.h"
+#include "../utility/boolean.h"
 #include <variant>
 
 namespace TEngine::Core {
+
 using index_t = unsigned short;
 static constexpr index_t INVALID_INDEX = (index_t)-1;
 
 template<class T>
 class PooledComponentAllocator : public IComponentAllocator<T> {
-	using IComponentAllocator<T>::m_allocator;
-
 	struct FreeBlock {};
 	struct LinkedBlock {
 		index_t next = INVALID_INDEX;
@@ -28,19 +28,20 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 	};
 
 	class Pool {
+		friend class ComponentIterator;
 	public:
 		Pool* next = nullptr;
 		Pool* prev = nullptr;
 	private:
-		Bucket* pBuckets = nullptr;
-		Block* pBlocks = nullptr;
-		index_t freeBucketIndex = 0;
-		index_t freeBlockIndex = INVALID_INDEX;
-		index_t top = 0;
-		index_t numBlocks = 0;
+		Bucket* m_buckets = nullptr;
+		Block* m_blocks = nullptr;
+		index_t m_freeBucketIndex = 0;
+		index_t m_freeBlockIndex = INVALID_INDEX;
+		index_t m_top = 0;
+		index_t m_numBlocks = 0;
 	public:
 		Pool(index_t n, Bucket* buckets, Block* blocks)
-			: numBlocks(n), pBuckets(buckets), pBlocks(blocks) {
+			: m_numBlocks(n), m_buckets(buckets), m_blocks(blocks) {
 			initBuckets();
 			initBlocks();
 		}
@@ -51,23 +52,30 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			return index != INVALID_INDEX;
 		}
 
+		bool has(index_t index) {
+			return get(index) != nullptr;
+		}
+
 		T* get(entity handle) {
 			index_t index = getBucketIndex(handle);
 			if (index == INVALID_INDEX) return nullptr;
 
 			Bucket& b = getBucket(index);
-			T* ptr = getBlockAs<T>(b.value);
-			assert(ptr);
-			return ptr;
+			return getBlockAs<T>(b.value);
+		}
+
+		T* get(index_t index) {
+			if (index == INVALID_INDEX) return nullptr;
+			return getBlockAs<T>(index);
 		}
 
 		bool allocate(entity handle) {
 			// if pool is full, return false
-			if (this->top == this->numBlocks &&
-				this->freeBlockIndex == INVALID_INDEX) return false;
+			if (this->m_top == this->m_numBlocks &&
+				this->m_freeBlockIndex == INVALID_INDEX) return false;
 			// if handle is already registered, return false
 			if (getBucketIndex(handle) != INVALID_INDEX) return false;
-			assert(this->freeBucketIndex != INVALID_INDEX);
+			assert(this->m_freeBucketIndex != INVALID_INDEX);
 
 			index_t blockIndex = useBlock();
 			getBlock(blockIndex) = T();
@@ -93,31 +101,31 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			// create and link buckets to adjacent buckets
 			index_t next = 1;
 			index_t prev = INVALID_INDEX;
-			for (index_t i = 0; i < this->numBlocks; ++i) {
-				Bucket* b = new (this->pBuckets + i) Bucket();
+			for (index_t i = 0; i < this->m_numBlocks; ++i) {
+				Bucket* b = new (this->m_buckets + i) Bucket();
 				b->next = next++;
 				b->prev = prev++;
 			}
 
 			// loop start and end links
-			index_t last = this->numBlocks - 1;
-			this->pBuckets[0].prev = last;
-			this->pBuckets[last].next = 0;
+			index_t last = this->m_numBlocks - 1;
+			this->m_buckets[0].prev = last;
+			this->m_buckets[last].next = 0;
 		}
 
 		void initBlocks() {
-			for (index_t i = 0; i < this->numBlocks; ++i) {
-				Block* b = new (this->pBlocks + i) Block();
+			for (index_t i = 0; i < this->m_numBlocks; ++i) {
+				Block* b = new (this->m_blocks + i) Block();
 			}
 		}
 
 		inline index_t hash(entity handle) {
-			return (unsigned int)handle % this->numBlocks;
+			return (unsigned int)handle % this->m_numBlocks;
 		}
 
 		inline Bucket& getBucket(index_t index) {
-			assert(index < this->numBlocks);
-			return this->pBuckets[index];
+			assert(index < this->m_numBlocks);
+			return this->m_buckets[index];
 		}
 
 		index_t getBucketIndex(entity handle) {
@@ -152,19 +160,19 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			next.prev = free.prev;
 
 			// update free index
-			if (this->freeBucketIndex == freeIndex) {
+			if (this->m_freeBucketIndex == freeIndex) {
 				bool lastBucket = freeIndex == free.next;
-				this->freeBucketIndex = lastBucket ? INVALID_INDEX : free.next;
+				this->m_freeBucketIndex = lastBucket ? INVALID_INDEX : free.next;
 			}
 			return free;
 		}
 
 		void linkBucket(index_t freeIndex) {
 			Bucket& free = getBucket(freeIndex);
-			index_t startIndex = this->freeBucketIndex;
+			index_t startIndex = this->m_freeBucketIndex;
 
 			if (startIndex == INVALID_INDEX) {
-				this->freeBucketIndex = freeIndex;
+				this->m_freeBucketIndex = freeIndex;
 				free = Bucket{ entity::invalid(), 0, freeIndex, freeIndex };
 			}
 			else {
@@ -192,7 +200,7 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 					insert key into a new bucket between
 					start and next. */
 
-				index_t freeIndex = this->freeBucketIndex;
+				index_t freeIndex = this->m_freeBucketIndex;
 				Bucket& free = unlinkBucket(freeIndex);
 
 				index_t nextIndex = start.next;
@@ -209,7 +217,7 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 					move random key to a free bucket
 					and insert key into this bucket. */
 
-				index_t freeIndex = this->freeBucketIndex;
+				index_t freeIndex = this->m_freeBucketIndex;
 				Bucket& free = unlinkBucket(freeIndex);
 
 				free = start;
@@ -263,8 +271,8 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 		}
 
 		inline Block& getBlock(index_t index) {
-			assert(index < this->numBlocks);
-			return this->pBlocks[index];
+			assert(index < this->m_numBlocks);
+			return this->m_blocks[index];
 		}
 
 		template<typename U>
@@ -280,11 +288,11 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 		}
 
 		index_t useBlock() {
-			if (this->freeBlockIndex != INVALID_INDEX) {
+			if (this->m_freeBlockIndex != INVALID_INDEX) {
 				/* if free list exists,
 					use the first block. */
 
-				index_t freeIndex = this->freeBlockIndex;
+				index_t freeIndex = this->m_freeBlockIndex;
 				LinkedBlock& free = getBlockRefAs<LinkedBlock>(freeIndex);
 				assert(free.prev == INVALID_INDEX);
 
@@ -294,19 +302,19 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 					LinkedBlock& next = getBlockRefAs<LinkedBlock>(nextIndex);
 					next.prev = INVALID_INDEX;
 				}
-				this->freeBlockIndex = nextIndex;
+				this->m_freeBlockIndex = nextIndex;
 
 				return freeIndex;
 			}
 			else {
 				/* get block from top of the stack */
-				assert(this->top < this->numBlocks);
-				return this->top++;
+				assert(this->m_top < this->m_numBlocks);
+				return this->m_top++;
 			}
 		}
 
 		void freeBlock(index_t index) {
-			if (index < this->top - 1) {
+			if (index < this->m_top - 1) {
 				linkBlock(index);
 			}
 			else {
@@ -315,7 +323,7 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 		}
 
 		void freeTopBlock(index_t index) {
-			this->top--;
+			this->m_top--;
 
 			Block& topBlock = getBlock(index);
 			assert(std::holds_alternative<T>(topBlock));
@@ -330,7 +338,7 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 
 				unlinkBlock(prevIndex);
 				prevBlock = FreeBlock();
-				this->top--;
+				this->m_top--;
 			}
 		}
 
@@ -340,11 +348,11 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			block = LinkedBlock();
 			LinkedBlock& cur = getBlockRefAs<LinkedBlock>(curIndex);
 
-			if (this->freeBlockIndex == INVALID_INDEX) {
-				this->freeBlockIndex = curIndex;
+			if (this->m_freeBlockIndex == INVALID_INDEX) {
+				this->m_freeBlockIndex = curIndex;
 			}
 			else {
-				index_t startIndex = this->freeBlockIndex;
+				index_t startIndex = this->m_freeBlockIndex;
 				LinkedBlock& start = getBlockRefAs<LinkedBlock>(startIndex);
 					
 				index_t nextIndex = start.next;
@@ -364,18 +372,18 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 
 			// if cur is the head of the chain
 			if (cur.prev == INVALID_INDEX) {
-				assert(this->freeBlockIndex == curIndex);
+				assert(this->m_freeBlockIndex == curIndex);
 
 				// if the chain ends at head
 				if (cur.next == INVALID_INDEX) {
-					this->freeBlockIndex = INVALID_INDEX;
+					this->m_freeBlockIndex = INVALID_INDEX;
 				}
 				else {
 					// set next as the new head
 					index_t nextIndex = cur.next;
 					LinkedBlock& next = getBlockRefAs<LinkedBlock>(nextIndex);
 					next.prev = INVALID_INDEX;
-					this->freeBlockIndex = nextIndex;
+					this->m_freeBlockIndex = nextIndex;
 				}
 			}
 			else {
@@ -392,15 +400,17 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 		}
 	};
 
-	class Iterator {
+	class PoolIterator {
 	private:
 		PooledComponentAllocator& m_allocator;
 		Pool* m_pool = nullptr;
 	public:
-		Iterator(PooledComponentAllocator& a, Pool* pool)
-			: m_allocator(a), m_pool(pool) {}
+		PoolIterator(PooledComponentAllocator& allocator)
+			: m_allocator(allocator) { }
+		PoolIterator(PooledComponentAllocator& allocator, Pool* pool)
+			: m_allocator(allocator), m_pool(pool) { }
 
-		Iterator& operator++() {
+		PoolIterator& operator++() {
 			assert(m_pool != nullptr);
 			if (m_pool == m_allocator.m_pEnd) {
 				m_pool = nullptr;
@@ -412,13 +422,13 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			}
 			return *this;
 		}
-		Iterator operator++(int) {
-			Iterator temp(*this);
+		PoolIterator operator++(int) {
+			PoolIterator temp(*this);
 			operator++();
 			return temp;
 		}
 
-		Iterator& operator--() {
+		PoolIterator& operator--() {
 			assert(m_pool != m_allocator.m_pStart);
 			if (m_pool == nullptr) {
 				m_pool = m_allocator.m_pEnd;
@@ -430,14 +440,13 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			}
 			return *this;
 		}
-		Iterator operator--(int) {
-			Iterator temp(*this);
+		PoolIterator operator--(int) {
+			PoolIterator temp(*this);
 			operator--();
 			return temp;
 		}
 
-		bool isEnd() { return !m_pool; }
-		bool isEnd() const { return !m_pool; }
+		operator bool() const { return m_pool; }
 
 		Pool* operator->() {
 			assert(m_pool);
@@ -457,22 +466,90 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			return *m_pool;
 		}
 	};
+
+	class ComponentIterator {
+	private:
+		PooledComponentAllocator& m_allocator;
+		PoolIterator m_poolIt;
+		index_t m_index = INVALID_INDEX;
+	public:
+		ComponentIterator(PooledComponentAllocator& allocator, PoolIterator poolIt, index_t index)
+			: m_allocator(allocator), m_poolIt(poolIt), m_index(index) {
+			increment();
+		}
+
+		ComponentIterator& operator++() {
+			assert(m_poolIt);
+			increment();
+			return *this;
+		}
+		ComponentIterator operator++(int) {
+			ComponentIterator temp(*this);
+			operator++();
+			return temp;
+		}
+
+		operator bool() const { return m_poolIt; }
+
+		T* operator->() {
+			assert(m_poolIt);
+			return m_poolIt->get(m_index);
+		}
+		const T* operator->() const {
+			assert(m_poolIt);
+			return m_poolIt->get(m_index);
+		}
+
+		T& operator*() {
+			assert(m_poolIt);
+			T* ptr = m_poolIt->get(m_index);
+			return *ptr;
+		}
+		const T& operator*() const {
+			assert(m_poolIt);
+			T* ptr = m_poolIt->get(m_index);
+			return *ptr;
+		}
+	private:
+		void increment() {
+			while (true) {
+				if (!m_poolIt) {
+					break;
+				}
+				else if (m_index == m_poolIt->m_top) {
+					++m_poolIt;
+					m_index = INVALID_INDEX;
+				}
+				else {
+					++m_index;
+					if (m_poolIt->has(m_index)) break;
+				}
+			}
+		}
+	};
+private:
+	using IComponentAllocator<T>::m_allocator;
+	using IComponentAllocator<T>::m_count;
+
+	bool m_running = true;
 public:
 	PooledComponentAllocator(IRootAllocator& a) : IComponentAllocator<T>(a) { }
 
-	bool reserve(index_t numBlocks) {
-		if (numBlocks == 0 || numBlocks == INVALID_INDEX) return false;
+	bool reserve(index_t m_numBlocks) {
+		assert(m_running);
+		if (!m_running) return false;
+		if (m_numBlocks == 0 || m_numBlocks == INVALID_INDEX) return false;
 
 		size_t sHeader = align(sizeof(Pool));
-		size_t sBuckets = align(numBlocks * sizeof(Bucket));
-		size_t sBlocks = align(numBlocks * sizeof(Block));
+		size_t sBuckets = align(m_numBlocks * sizeof(Bucket));
+		size_t sBlocks = align(m_numBlocks * sizeof(Block));
 		size_t size = sHeader + sBuckets + sBlocks;
 		void* ptr = m_allocator.allocate(size);
 		if (!ptr) return false;
 
 		word_t base = (word_t)ptr;
 		auto pHeader = new (ptr) Pool(
-			numBlocks,
+			m_numBlocks,
 			(Bucket*)(base + sHeader),
 			(Block*)(base + sHeader + sBuckets)
 		);
@@ -491,27 +568,36 @@ public:
 	}
 
 	bool allocate(entity handle) {
+		assert(m_running);
+		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
 
-		for (auto it = poolBegin(); !it.isEnd(); ++it) {
-			if (it->allocate(handle)) return true;
+		for (auto it = poolBegin(); it; ++it) {
+			if (it->allocate(handle)) {
+				m_count++;
+				return true;
+			}
 		}
 		return false;
 	}
 
 	bool has(entity handle) {
+		assert(m_running);
+		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
 
-		for (auto it = poolBegin(); !it.isEnd(); ++it) {
+		for (auto it = poolBegin(); it; ++it) {
 			if (it->has(handle)) return true;
 		}
 		return false;
 	}
 
 	T* get(entity handle) {
+		assert(m_running);
+		if (!m_running) return nullptr;
 		if (handle == entity::invalid()) return nullptr;
 
-		for (auto it = poolBegin(); !it.isEnd(); ++it) {
+		for (auto it = poolBegin(); it; ++it) {
 			auto ptr = it->get(handle);
 			if (ptr) return ptr;
 		}
@@ -519,27 +605,39 @@ public:
 	}
 
 	bool free(entity handle) {
+		assert(m_running);
+		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
 
-		for (auto it = poolBegin(); !it.isEnd(); ++it) {
-			if (it->free(handle)) return true;
+		for (auto it = poolBegin(); it; ++it) {
+			if (it->free(handle)) {
+				m_count--;
+				return true;
+			}
 		}
 		return false;
 	}
 
 	void shutDown() {
-		for (auto it = poolBegin(); !it.isEnd(); ++it) {
+		if (!Utility::toggle<false>(m_running)) return;
+
+		for (auto it = poolBegin(); it; ++it) {
 			Pool* pool = &*it;
 			pool->~Pool();
 			m_allocator.free(pool);
 		}
+		m_count = 0;
+	}
+
+	ComponentIterator begin() {
+		return ComponentIterator(*this, poolBegin(), INVALID_INDEX);
 	}
 private:
 	Pool* m_pStart = nullptr;
 	Pool* m_pEnd = nullptr;
 
-	Iterator poolBegin() {
-		return Iterator(*this, m_pStart);
+	PoolIterator poolBegin() {
+		return PoolIterator(*this, m_pStart);
 	}
 };
 }

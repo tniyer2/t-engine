@@ -26,6 +26,14 @@ void Renderer::shutDown() {
 void Renderer::update(float deltaTime) {
 	m_data->window.update(deltaTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_time += deltaTime;
+	if (m_time > 2.0) {
+		m_time = 0;
+		for (auto it = m_data->allocator.begin(); it; ++it) {
+			std::cout << "mesh id: " << (unsigned int)it->mesh << "\n";
+		}
+	}
 }
 }
 

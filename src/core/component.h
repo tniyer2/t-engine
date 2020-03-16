@@ -10,6 +10,8 @@ namespace TEngine::Core {
 
 template<class T>
 class IComponentAllocator : public IDerivedAllocator {
+protected:
+	size_t m_count = 0;
 public:
 	IComponentAllocator(IRootAllocator& a) : IDerivedAllocator(a) { }
 
