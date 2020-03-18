@@ -25,7 +25,7 @@ public:
 
 class RootAllocator : public IRootAllocator {
 private:
-	inline static RootAllocator* instance = nullptr;
+	inline static RootAllocator* s_instance = nullptr;
 public:
 	static RootAllocator& getInstance();
 

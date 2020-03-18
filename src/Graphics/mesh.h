@@ -2,20 +2,13 @@
 #ifndef GRAPHICS_MESH_H
 #define GRAPHICS_MESH_H
 
-#include "../core/id.h"
 #include "shader.h"
-
 #include <glad/glad.h>
-
 #include <glm/glm.hpp>
-
 #include <string>
 #include <vector>
 
 namespace TEngine::Graphics {
-
-struct mesh_tag{};
-using meshId = TEngine::Core::Id<mesh_tag, unsigned int, 0>;
 
 struct Vertex {
 	glm::vec3 Position;

@@ -23,8 +23,5 @@ public:
 	friend bool operator==(Id a, Id b) { return a.m_val == b.m_val; }
 	friend bool operator!=(Id a, Id b) { return a.m_val != b.m_val; }
 };
-
-struct entity_tag {};
-using entity = Id<entity_tag, unsigned int, 0>;
 }
 #endif

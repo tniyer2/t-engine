@@ -1,15 +1,13 @@
 
-#include "core/core.h"
-#include "core/script.h"
-#include "core/resource.h"
-#include "graphics/renderer.h"
-#include "graphics/window.h"
-#include "utility/timer.h"
-#include <windows.h>
+#include "engine.h"
+#include <iostream>
+#include <string>
 
 using namespace TEngine;
 using Core::entity;
 using Graphics::MeshComponent;
+
+static std::string ERROR_DIVIDER = std::string(60, '-');
 
 class Player : public Core::Script {
 private:
@@ -50,62 +48,42 @@ void removeMeshComponent(unsigned int e) {
 	Core::ComponentManager::getInstance().removeComponent<MeshComponent>(entity(e));
 }
 
-int main() {
-	Core::RootAllocator gRootAllocator;
-	gRootAllocator.startUp();
+void userLogic() {
+	auto& engine = Core::Engine::getInstance();
 
-	Core::ResourceManager gResourceManager;
-	gResourceManager.startUp();
+	entity e = engine.gEntityManager.create();
+	createMeshComponent(e);
+	engine.gScriptManager.addScript<Player>(e);
 
-	Core::ComponentManager gComponentManager;
-	gComponentManager.startUp();
-
-	Core::ScriptManager gScriptManager;
-	gScriptManager.startUp();
-
-	Core::EntityManager gEntityManager;
-	gEntityManager.startUp();
-
-	Graphics::Renderer gRenderer;
-	gRenderer.startUp();
-
-	Graphics::Window& gWindow = gRenderer.getWindow();
-
-	entity e = gEntityManager.create();
-	auto m_mesh = gComponentManager.addComponent<MeshComponent>(e);
-	m_mesh->mesh = Graphics::meshId(20);
-	gScriptManager.addScript<Player>(e);
-
+	createMeshComponent(3);
 	createMeshComponent(12);
 	createMeshComponent(2);
 	removeMeshComponent(12);
-
-	Utility::Timer timer;
-
-	float deltaTime = 0.0f;
-	while (!gWindow.shouldClose()) {
-		if ((deltaTime = timer.step((float)glfwGetTime())) == 0) continue;
-
-		gRootAllocator.update(deltaTime);
-		gComponentManager.update(deltaTime);
-		gScriptManager.update(deltaTime);
-		gEntityManager.update(deltaTime);
-		gRenderer.update(deltaTime);
-	}
-
-	gRenderer.shutDown();
-	gEntityManager.shutDown();
-	gScriptManager.shutDown();
-	gComponentManager.shutDown();
-	gResourceManager.shutDown();
-	gRootAllocator.shutDown();
-
-	return 0;
 }
 
-/*
-Entity entity = gEntityManager.createEntity();
-Model model("resources/objects/nanosuit/nanosuit.obj");
-MeshComponent* comp = gComponentManager.setComponent<MeshComponent>(entity);
-comp->model = model;
-*/
+void printError(std::string s) {
+	std::cout << ERROR_DIVIDER << "\n\nERROR: " << s << "\n\n" << ERROR_DIVIDER << "\n";
+}
+
+int main() {
+	try {
+		Core::Engine gEngine;
+		gEngine.startUp();
+		userLogic();
+		gEngine.runGameLoop();
+		gEngine.shutDown();
+	}
+	catch (std::exception & e) {
+		printError(e.what());
+		throw;
+	}
+	catch (const char* e) {
+		printError(e);
+		throw;
+	}
+	catch (std::string e) {
+		printError(e);
+		throw;
+	}
+	return 0;
+}

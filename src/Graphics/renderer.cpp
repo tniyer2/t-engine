@@ -1,11 +1,11 @@
 
 #include "renderer.h"
-#include "../utility/boolean.h"
+#include "../core/component_manager.h"
 
 namespace TEngine::Graphics {
 
 void Renderer::startUp() {
-	if (!Utility::toggle<true>(running)) return;
+	SubSystem<Renderer>::startUp();
 
 	m_data = new RendererData(Core::RootAllocator::getInstance());
 	m_data->allocator.reserve(100);
@@ -18,21 +18,18 @@ void Renderer::startUp() {
 }
 
 void Renderer::shutDown() {
-	if (!Utility::toggle<false>(running)) return;
-
+	SubSystem<Renderer>::shutDown();
 	delete m_data;
 }
 
 void Renderer::update(float deltaTime) {
+	checkRunning();
+
 	m_data->window.update(deltaTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	m_time += deltaTime;
-	if (m_time > 2.0) {
-		m_time = 0;
-		for (auto it = m_data->allocator.begin(); it; ++it) {
-			std::cout << "mesh id: " << (unsigned int)it->mesh << "\n";
-		}
+	for (auto it = m_data->allocator.begin(); it; ++it) {
+		// std::cout << "mesh id: " << (unsigned int)it->mesh << "\n";
 	}
 }
 }

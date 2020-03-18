@@ -48,9 +48,9 @@ std::map<int, int> get_key_translations() {
 		int key = KEY_RANGES[i];
 		if (key == -1) {
 			if (i < KEY_RANGES.size() - 2) {
-				int start = KEY_RANGES[++i];
+				int run = KEY_RANGES[++i];
 				int end = KEY_RANGES[++i];
-				for (int j = start; j <= end; ++j) {
+				for (int j = run; j <= end; ++j) {
 					translations[j] = count++;
 				}
 			}

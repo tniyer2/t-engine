@@ -19,13 +19,13 @@ void* align(void* p_ptr) {
 }
 
 RootAllocator& RootAllocator::getInstance() {
-	assert(instance);
-	return *instance;
+	assert(s_instance);
+	return *s_instance;
 }
 
 RootAllocator::RootAllocator() {
-	assert(!instance);
-	instance = this;
+	assert(!s_instance);
+	s_instance = this;
 }
 
 void* RootAllocator::allocate(size_t size) {

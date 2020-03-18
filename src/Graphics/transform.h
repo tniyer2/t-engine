@@ -2,8 +2,10 @@
 #ifndef GRAPHICS_TRANSFORM_H
 #define GRAPHICS_TRANSFORM_H
 
-#include "../core/core.h"
-#include "../core/id.h"
+#include "../core/component_manager.h"
+#include "../core/pooled_component_array.h"
+#include "../core/component.h"
+#include "../core/entity.h"
 #include <glm/glm.hpp>
 
 namespace TEngine::Graphics {
@@ -11,16 +13,14 @@ namespace TEngine::Graphics {
 using Core::entity;
 using Core::ComponentPtr;
 
-class TransformComponentArray;
-
 class Transform {
 	using index_t = unsigned int;
 
 	friend class TransformComponentArray;
 
 	ComponentPtr<Transform> getTransform(entity e) {
-		auto& instance = Core::ComponentManager::getInstance();
-		return instance.getComponent<Transform>(e);
+		auto& s_instance = Core::ComponentManager::getInstance();
+		return s_instance.getComponent<Transform>(e);
 	}
 public:
 	glm::mat4 matrix;

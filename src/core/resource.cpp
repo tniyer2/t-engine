@@ -6,24 +6,24 @@
 namespace TEngine::Core {
 
 ResourceManager& ResourceManager::getInstance() {
-	assert(instance);
-	return *instance;
+	assert(s_instance);
+	return *s_instance;
 }
 
 ResourceManager::ResourceManager()
 	: m_allocator(RootAllocator::getInstance()) {
-	assert(!instance);
-	instance = this;
+	assert(!s_instance);
+	s_instance = this;
 }
 
 void ResourceManager::startUp() {
-	if (!Utility::toggle<true>(running)) return;
+	if (!Utility::toggle<true>(s_running)) return;
 
 	m_allocator.reserve(DEFAULT_STACK_SIZE);
 }
 
 void ResourceManager::shutDown() {
-	if (!Utility::toggle<false>(running)) return;
+	if (!Utility::toggle<false>(s_running)) return;
 
 	m_allocator.shutDown();
 }

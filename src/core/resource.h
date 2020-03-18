@@ -44,8 +44,8 @@ public:
 class ResourceManager {
 private:
 	constexpr static size_t DEFAULT_STACK_SIZE = 10485760; // 10 MB
-	inline static ResourceManager* instance = nullptr;
-	inline static bool running = false;
+	inline static ResourceManager* s_instance = nullptr;
+	inline static bool s_running = false;
 
 	LinearAllocator m_allocator;
 public:

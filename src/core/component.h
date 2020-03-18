@@ -3,7 +3,7 @@
 #define CORE_COMPONENT_H
 
 #include "memory.h"
-#include "id.h"
+#include "entity.h"
 #include <cassert>
 
 namespace TEngine::Core {
@@ -14,6 +14,8 @@ protected:
 	size_t m_count = 0;
 public:
 	IComponentAllocator(IRootAllocator& a) : IDerivedAllocator(a) { }
+
+	size_t getCount() { return m_count; }
 
 	virtual bool allocate(entity) = 0;
 	virtual bool has(entity) = 0;
@@ -59,6 +61,19 @@ public:
 		assert(ptr);
 		return *ptr;
 	}
+};
+
+template<class T>
+class ComponentIterator {
+	virtual ComponentIterator& operator++() = 0;
+
+	virtual operator bool() const = 0;
+
+	virtual T* operator->() = 0;
+	// virtual const T* operator->() const = 0;
+
+	virtual T& operator*() = 0;
+	// virtual const T& operator*() const = 0;
 };
 }
 #endif

@@ -8,7 +8,6 @@ namespace TEngine::Utility {
 
 template<bool expected>
 bool toggle(bool& val) {
-	assert(val != expected);
 	if (val == expected) return false;
 	val = expected;
 	return true;
