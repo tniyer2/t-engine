@@ -6,8 +6,6 @@
 #include "component_array.h"
 #include "component_ptr.h"
 #include "entity.h"
-#include "../utility/boolean.h"
-#include <variant>
 
 namespace TEngine::Core {
 
@@ -28,6 +26,11 @@ public:
 
 	ComponentPtr<T> getComponent(entity e) const override {
 		return ComponentPtr<T>(m_allocator, e);
+	}
+
+	std::shared_ptr<IComponentIterator<T>> begin() const override {
+		auto ptr = new typename PooledComponentAllocator<T>::PooledComponentIterator(m_allocator.begin());
+		return std::shared_ptr<IComponentIterator<T>>(ptr);
 	}
 
 	ComponentPtr<T> addComponent(entity e) override {

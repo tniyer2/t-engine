@@ -2,6 +2,7 @@
 #ifndef CORE_COMPONENT_MANAGER_H
 #define CORE_COMPONENT_MANAGER_H
 
+#include "component_iterator.h"
 #include "component_array.h"
 #include "entity.h"
 #include "subsystem.h"
@@ -21,6 +22,24 @@ public:
 	using SubSystem<ComponentManager>::SubSystem;
 
 	template<class T>
+	bool hasComponent(entity e) const {
+		checkRunning();
+		return getComponentArray<T>().hasComponent(e);
+	}
+
+	template<class T>
+	ComponentPtr<T> getComponent(entity e) const {
+		checkRunning();
+		return getComponentArray<T>().getComponent(e);
+	}
+
+	template<class T>
+	auto begin() const {
+		checkRunning();
+		return getComponentArray<T>().begin();
+	}
+
+	template<class T>
 	void registerComponentArray(IComponentArray<T>& arr) {
 		checkRunning();
 
@@ -30,18 +49,6 @@ public:
 		if (!newId) return;
 
 		m_arrays.push_back(&arr);
-	}
-
-	template<class T>
-	bool hasComponent(entity e) {
-		checkRunning();
-		return getComponentArray<T>().hasComponent(e);
-	}
-
-	template<class T>
-	ComponentPtr<T> getComponent(entity e) {
-		checkRunning();
-		return getComponentArray<T>().getComponent(e);
 	}
 
 	template<class T>
@@ -76,7 +83,7 @@ private:
 	}
 
 	template<typename T>
-	IComponentArray<T>& getComponentArray() {
+	IComponentArray<T>& getComponentArray() const {
 		int id = getTypeId<T>();
 		assert(id < typeIdCounter);
 		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[id-1]);

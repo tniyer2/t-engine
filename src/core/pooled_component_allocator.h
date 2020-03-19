@@ -12,6 +12,7 @@ namespace TEngine::Core {
 
 template<class T>
 class PooledComponentAllocator : public IComponentAllocator<T> {
+private:
 	using index_t = unsigned short;
 	constexpr static index_t INVALID_INDEX = (index_t)-1;
 
@@ -468,14 +469,15 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 			return *m_pool;
 		}
 	};
-
-	class PooledComponentIterator : public ComponentIterator<T> {
+public:
+	class PooledComponentIterator : public IComponentIterator<T> {
 	private:
 		PooledComponentAllocator& m_allocator;
 		PoolIterator m_poolIt;
 		index_t m_index = INVALID_INDEX;
 	public:
-		PooledComponentIterator(PooledComponentAllocator& allocator, PoolIterator poolIt, index_t index)
+		PooledComponentIterator(
+			PooledComponentAllocator& allocator, PoolIterator poolIt, index_t index)
 			: m_allocator(allocator), m_poolIt(poolIt), m_index(index) {
 			increment();
 		}

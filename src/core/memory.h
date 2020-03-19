@@ -11,7 +11,10 @@ static constexpr size_t ALIGN_SIZE = sizeof(word_t);
 size_t align(size_t);
 void* align(void*);
 
-class IAllocator { };
+class IAllocator {
+public:
+	virtual ~IAllocator() { }
+};
 
 class IRootAllocator : public IAllocator {
 public:

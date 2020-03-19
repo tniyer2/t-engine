@@ -28,8 +28,10 @@ void Renderer::update(float deltaTime) {
 	m_data->window.update(deltaTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (auto it = m_data->allocator.begin(); it; ++it) {
-		// std::cout << "mesh id: " << (unsigned int)it->mesh << "\n";
+	auto& compM = Core::ComponentManager::getInstance();
+	auto itptr = compM.begin<MeshComponent>();
+	for (auto& it = *itptr; it; ++it) {
+		std::cout << "mesh id: " << (unsigned int)it->mesh << "\n";
 	}
 }
 }

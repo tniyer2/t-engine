@@ -34,7 +34,7 @@ public:
 	SubSystem(const SubSystem&) = delete;
 	void operator=(const SubSystem&) = delete;
 
-	void checkRunning() {
+	void checkRunning() const {
 		if (!T::s_running) {
 			throw ("Invalid state. Cannot access subsystem " + T::typeName() + ".");
 		}
