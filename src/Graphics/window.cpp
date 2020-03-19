@@ -3,9 +3,9 @@
 
 namespace TEngine::Graphics {
 
-using NS_Input::KeyState;
-using NS_Input::MouseEvent;
-using NS_Input::ScrollEvent;
+using InputNS::KeyState;
+using InputNS::MouseEvent;
+using InputNS::ScrollEvent;
 
 Window::Window() {
 	// Listen for glfw errors

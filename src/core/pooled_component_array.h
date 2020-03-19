@@ -2,9 +2,9 @@
 #ifndef CORE_POOLED_COMPONENT_ARRAY_H
 #define CORE_POOLED_COMPONENT_ARRAY_H
 
-#include "component_pool.h"
+#include "pooled_component_allocator.h"
 #include "component_array.h"
-#include "component.h"
+#include "component_ptr.h"
 #include "entity.h"
 #include "../utility/boolean.h"
 #include <variant>
@@ -18,15 +18,15 @@ protected:
 public:
 	PooledComponentArray(PooledComponentAllocator<T>& a) : m_allocator(a) { }
 
-	size_t getSize() override {
+	size_t getCount() const override {
 		return m_allocator.getCount();
 	}
 
-	bool hasComponent(entity e) override {
+	bool hasComponent(entity e) const override {
 		return m_allocator.has(e);
 	}
 
-	ComponentPtr<T> getComponent(entity e) override {
+	ComponentPtr<T> getComponent(entity e) const override {
 		return ComponentPtr<T>(m_allocator, e);
 	}
 

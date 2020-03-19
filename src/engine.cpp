@@ -31,7 +31,6 @@ void Engine::runGameLoop() {
 	while (!gRenderer.getWindow().shouldClose()) {
 		if ((m_deltaTime = m_timer.step((float)glfwGetTime())) == 0) continue;
 
-		gRootAllocator.update(m_deltaTime);
 		gScriptManager.update(m_deltaTime);
 		gEntityManager.update(m_deltaTime);
 		gRenderer.update(m_deltaTime);

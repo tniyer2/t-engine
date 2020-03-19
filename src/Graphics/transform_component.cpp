@@ -1,12 +1,12 @@
 
-#include "transform.h"
+#include "transform_component.h"
 
 namespace TEngine::Graphics {
 
-ComponentPtr<Transform> Transform::getChild(index_t index) {
+ComponentPtr<TransformComponent> TransformComponent::getChild(index_t index) {
 	bool validIndex = index < m_numChildren;
 	assert(validIndex);
-	if (!validIndex) return ComponentPtr<Transform>();
+	if (!validIndex) return ComponentPtr<TransformComponent>();
 
 	bool forward = index <= m_numChildren / 2;
 
@@ -22,14 +22,14 @@ ComponentPtr<Transform> Transform::getChild(index_t index) {
 		forward ? count++ : count--;
 	}
 
-	return ComponentPtr<Transform>();
+	return ComponentPtr<TransformComponent>();
 }
 
-void Transform::addChild(entity e) {
+void TransformComponent::addChild(entity e) {
 	addChild(m_numChildren, e);
 }
 
-void Transform::addChild(index_t index, entity e) {
+void TransformComponent::addChild(index_t index, entity e) {
 	bool validIndex = index <= m_numChildren;
 	assert(validIndex);
 	if (!validIndex) return;
@@ -43,8 +43,8 @@ void Transform::addChild(index_t index, entity e) {
 
 	bool first = index == 0;
 	bool last = index == m_numChildren;
-	ComponentPtr<Transform> prev;
-	ComponentPtr<Transform> next;
+	ComponentPtr<TransformComponent> prev;
+	ComponentPtr<TransformComponent> next;
 
 	if (!first) prev = getChild(index - 1);
 	if (!last) next = getChild(index);
@@ -71,15 +71,15 @@ void Transform::addChild(index_t index, entity e) {
 	m_numChildren++;
 }
 
-void Transform::removeChild(entity e) {
+void TransformComponent::removeChild(entity e) {
 	removeChild(getTransform(e));
 }
 
-void Transform::removeChild(index_t index) {
+void TransformComponent::removeChild(index_t index) {
 	removeChild(getChild(index));
 }
 
-void Transform::removeChild(ComponentPtr<Transform> child) {
+void TransformComponent::removeChild(ComponentPtr<TransformComponent> child) {
 	assert(child);
 	if (!child) return;
 

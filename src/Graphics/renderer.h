@@ -2,12 +2,12 @@
 #ifndef GRAPHICS_RENDERER_H
 #define GRAPHICS_RENDERER_H
 
+#include "../core/pooled_component_allocator.h"
 #include "../core/pooled_component_array.h"
-#include "../core/component_pool.h"
 #include "../core/subsystem.h"
 #include "mesh_component.h"
-#include "mesh_id.h"
 #include "mesh.h"
+#include "mesh_id.h"
 #include "window.h"
 #include <vector>
 
@@ -28,6 +28,7 @@ class Renderer : public Core::SubSystem<Renderer> {
 private:
 	RendererData* m_data = nullptr;
 public:
+	static std::string typeName() { return "Graphics::Renderer"; }
 	using SubSystem<Renderer>::SubSystem;
 
 	void startUp();

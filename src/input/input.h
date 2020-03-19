@@ -1,13 +1,13 @@
 
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef INPUT_INPUT_H
+#define INPUT_INPUT_H
 
-#include <string>
 #include <array>
 #include <vector>
 #include <map>
+#include <string>
 
-namespace TEngine { namespace NS_Input {
+namespace TEngine::InputNS {
 
 enum class KeyState {
 	none,
@@ -85,5 +85,5 @@ public:
 	MouseEvent getMouseInfo() { return m_mouseEvent; }
 	ScrollEvent getScrollInfo() { return m_scrollEvent; }
 };
-}}
+}
 #endif

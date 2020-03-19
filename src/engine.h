@@ -7,7 +7,7 @@
 #include "core/entity_manager.h"
 #include "core/component_manager.h"
 #include "core/script_manager.h"
-#include "core/resource.h"
+#include "core/resource_manager.h"
 #include "core/subsystem.h"
 #include "utility/timer.h"
 

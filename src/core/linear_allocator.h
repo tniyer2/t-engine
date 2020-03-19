@@ -1,6 +1,6 @@
 
-#ifndef CORE_STACK_H
-#define CORE_STACK_H
+#ifndef CORE_LINEAR_ALLOCATOR_H
+#define CORE_LINEAR_ALLOCATOR_H
 
 #include "memory.h"
 

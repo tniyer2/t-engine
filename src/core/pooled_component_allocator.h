@@ -2,7 +2,8 @@
 #ifndef CORE_COMPONENT_POOL_H
 #define CORE_COMPONENT_POOL_H
 
-#include "component.h"
+#include "component_allocator.h"
+#include "component_iterator.h"
 #include "entity.h"
 #include "../utility/boolean.h"
 #include <variant>
@@ -403,12 +404,12 @@ class PooledComponentAllocator : public IComponentAllocator<T> {
 
 	class PoolIterator {
 	private:
-		PooledComponentAllocator& m_allocator;
+		const PooledComponentAllocator& m_allocator;
 		Pool* m_pool = nullptr;
 	public:
-		PoolIterator(PooledComponentAllocator& allocator)
+		PoolIterator(const PooledComponentAllocator& allocator)
 			: m_allocator(allocator) { }
-		PoolIterator(PooledComponentAllocator& allocator, Pool* pool)
+		PoolIterator(const PooledComponentAllocator& allocator, Pool* pool)
 			: m_allocator(allocator), m_pool(pool) { }
 
 		PoolIterator& operator++() {
@@ -578,7 +579,7 @@ public:
 		return false;
 	}
 
-	bool has(entity handle) override {
+	bool has(entity handle) const override {
 		assert(m_running);
 		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
@@ -589,7 +590,7 @@ public:
 		return false;
 	}
 
-	T* get(entity handle) override {
+	T* get(entity handle) const override {
 		assert(m_running);
 		if (!m_running) return nullptr;
 		if (handle == entity::invalid()) return nullptr;
@@ -633,7 +634,7 @@ private:
 	Pool* m_pStart = nullptr;
 	Pool* m_pEnd = nullptr;
 
-	PoolIterator poolBegin() {
+	PoolIterator poolBegin() const {
 		return PoolIterator(*this, m_pStart);
 	}
 };

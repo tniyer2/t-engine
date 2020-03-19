@@ -2,7 +2,7 @@
 #include "input.h"
 #include <GLFW/glfw3.h>
 
-namespace TEngine { namespace NS_Input {
+namespace TEngine::InputNS {
 
 std::array<int, 31> KEY_RANGES = {
 	32, 39, -1, 44, 57, 59, 61, -1, 65, 93, 96, 161, 162, -1, 256, 269,
@@ -120,4 +120,4 @@ bool Input::isKeyDown(std::string text) {
 	KeyEvent e = pollKey(text);
 	return e.state == KeyState::press || e.state == KeyState::repeat;
 }
-}}
+}

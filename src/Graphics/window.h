@@ -12,7 +12,7 @@
 
 namespace TEngine::Graphics {
 
-using TEngine::NS_Input::Input;
+using TEngine::InputNS::Input;
 
 void error_callback(int, const char*);
 

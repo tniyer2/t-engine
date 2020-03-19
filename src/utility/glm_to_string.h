@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace TEngine { namespace Utility {
+namespace TEngine::Utility {
 	using std::string;
 	using std::to_string;
 	using glm::vec4;
@@ -13,5 +13,5 @@ namespace TEngine { namespace Utility {
 
 	string to_string(vec4);
 	string to_string(mat4);
-}}
+}
 #endif

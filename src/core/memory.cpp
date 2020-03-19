@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <cassert>
 
-namespace TEngine { namespace Core {
+namespace TEngine::Core {
 
 size_t align(size_t size) {
 	size_t aligned = (size + (ALIGN_SIZE - 1)) & ~(ALIGN_SIZE - 1);
@@ -36,4 +36,4 @@ void RootAllocator::free(void* ptr) {
 	assert(ptr == align(ptr));
 	::free(ptr);
 }
-}}
+}

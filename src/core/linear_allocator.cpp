@@ -1,5 +1,5 @@
 
-#include "stack.h"
+#include "linear_allocator.h"
 #include "../utility/boolean.h"
 
 #include <stdlib.h>

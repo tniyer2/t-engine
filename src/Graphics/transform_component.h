@@ -3,8 +3,7 @@
 #define GRAPHICS_TRANSFORM_H
 
 #include "../core/component_manager.h"
-#include "../core/pooled_component_array.h"
-#include "../core/component.h"
+#include "../core/component_ptr.h"
 #include "../core/entity.h"
 #include <glm/glm.hpp>
 
@@ -13,14 +12,14 @@ namespace TEngine::Graphics {
 using Core::entity;
 using Core::ComponentPtr;
 
-class Transform {
+class TransformComponent {
 	using index_t = unsigned int;
 
 	friend class TransformComponentArray;
 
-	ComponentPtr<Transform> getTransform(entity e) {
+	ComponentPtr<TransformComponent> getTransform(entity e) {
 		auto& s_instance = Core::ComponentManager::getInstance();
-		return s_instance.getComponent<Transform>(e);
+		return s_instance.getComponent<TransformComponent>(e);
 	}
 public:
 	glm::mat4 matrix;
@@ -36,7 +35,7 @@ private:
 public:
 	size_t getNumChildren() { return m_numChildren; }
 
-	ComponentPtr<Transform> getChild(index_t);
+	ComponentPtr<TransformComponent> getChild(index_t);
 	// adds child to the end of the list.
 	void addChild(entity);
 	// adds child at specified index.
@@ -46,20 +45,7 @@ public:
 	// removes child at specified index.
 	void removeChild(index_t);
 private:
-	void removeChild(ComponentPtr<Transform>);
-};
-
-class TransformComponentArray : public Core::PooledComponentArray<Transform> {
-public:
-	using Core::PooledComponentArray<Transform>::PooledComponentArray;
-
-	virtual ComponentPtr<Transform> addComponent(entity e) {
-		bool allocated = m_allocator.allocate(e);
-		assert(allocated);
-		ComponentPtr<Transform> ptr(m_allocator, e);
-		ptr->m_self = e;
-		return ptr;
-	}
+	void removeChild(ComponentPtr<TransformComponent>);
 };
 }
 #endif

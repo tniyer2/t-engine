@@ -11,13 +11,12 @@ static constexpr size_t ALIGN_SIZE = sizeof(word_t);
 size_t align(size_t);
 void* align(void*);
 
-class IAllocator {};
+class IAllocator { };
 
 class IRootAllocator : public IAllocator {
 public:
 	virtual void startUp() { };
 	virtual void shutDown() { };
-	void update(float) { }
 
 	virtual void* allocate(size_t) = 0;
 	virtual void free(void*) = 0;
