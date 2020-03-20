@@ -15,6 +15,7 @@ public:
 	virtual ~TU_IComponentArray() { };
 	virtual size_t getCount() const = 0;
 	virtual bool hasComponent(entity) const = 0;
+	virtual std::unique_ptr<TU_IComponentIterator> TUbegin() const = 0;
 	virtual bool removeComponent(entity) = 0;
 	virtual bool removeIfComponent(entity) = 0;
 };
@@ -23,8 +24,8 @@ template<class T>
 class IComponentArray : public TU_IComponentArray {
 public:
 	virtual ComponentPtr<T> getComponent(entity) const = 0;
+	virtual std::unique_ptr<IComponentIterator<T>> begin() const = 0;
 	virtual ComponentPtr<T> addComponent(entity) = 0;
-	virtual std::shared_ptr<IComponentIterator<T>> begin() const = 0;
 };
 }
 #endif

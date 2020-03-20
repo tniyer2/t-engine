@@ -1,9 +1,10 @@
 
-#ifndef GRAPHICS_TRANSFORM_H
-#define GRAPHICS_TRANSFORM_H
+#ifndef GRAPHICS_TRANSFORM_COMPONENT_H
+#define GRAPHICS_TRANSFORM_COMPONENT_H
 
 #include "../core/component_manager.h"
 #include "../core/component_ptr.h"
+#include "../core/component.h"
 #include "../core/entity.h"
 #include <glm/glm.hpp>
 
@@ -12,40 +13,33 @@ namespace TEngine::Graphics {
 using Core::entity;
 using Core::ComponentPtr;
 
-class TransformComponent {
+class TransformComponent : public Core::IComponent {
 	using index_t = unsigned int;
-
-	friend class TransformComponentArray;
-
-	ComponentPtr<TransformComponent> getTransform(entity e) {
-		auto& s_instance = Core::ComponentManager::getInstance();
-		return s_instance.getComponent<TransformComponent>(e);
-	}
 public:
 	glm::mat4 matrix;
 	glm::mat4 computed;
+	const entity entityId;
 private:
-	size_t m_numChildren = 0;
-	entity m_self;
+	index_t m_numChildren = 0;
 	entity m_parent;
 	entity m_firstChild;
 	entity m_lastChild;
 	entity m_prevSibling;
 	entity m_nextSibling;
 public:
-	size_t getNumChildren() { return m_numChildren; }
+	TransformComponent(entity e) : entityId(e) { }
 
-	ComponentPtr<TransformComponent> getChild(index_t);
-	// adds child to the end of the list.
-	void addChild(entity);
-	// adds child at specified index.
-	void addChild(index_t, entity);
-	// removes child from list.
-	void removeChild(entity);
-	// removes child at specified index.
-	void removeChild(index_t);
+	index_t getNumChildren() const { return m_numChildren; }
+	ComponentPtr<TransformComponent> getChild(index_t) const;
+
+	void addChild(entity); // adds child to the end of the list.
+	void addChild(index_t, entity); // adds child at specified index.
+	void removeChild(entity); // removes child from list.
+	void removeChild(index_t); // removes child at specified index.
 private:
-	void removeChild(ComponentPtr<TransformComponent>);
+	static ComponentPtr<TransformComponent> getTransform(entity);
+
+	void _removeChild(ComponentPtr<TransformComponent>);
 };
 }
 #endif

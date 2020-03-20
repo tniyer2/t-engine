@@ -15,11 +15,9 @@ public:
 	explicit Id(T val) : m_val(val) { }
 
 	explicit operator T() const { return m_val; }
-
-	operator bool() const { return m_val != default_value; }
+	explicit operator bool() const { return m_val != default_value; }
 
 	friend bool operator<(Id a, Id b) { return a.m_val < b.m_val; }
-
 	friend bool operator==(Id a, Id b) { return a.m_val == b.m_val; }
 	friend bool operator!=(Id a, Id b) { return a.m_val != b.m_val; }
 };

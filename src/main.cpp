@@ -6,6 +6,7 @@
 using namespace TEngine;
 using Core::entity;
 using Graphics::MeshComponent;
+using Graphics::TransformComponent;
 
 static std::string ERROR_DIVIDER = std::string(60, '-');
 
@@ -39,26 +40,37 @@ public:
 	}
 };
 
-void createMeshComponent(unsigned int e) {
-	auto ptr = Core::ComponentManager::getInstance().addComponent<MeshComponent>(entity(e));
-	ptr->mesh = Graphics::meshId(e);
+template<class T>
+void create(unsigned int e) {
+	Core::ComponentManager::getInstance().addComponent<T>(entity(e));
 }
 
-void removeMeshComponent(unsigned int e) {
-	Core::ComponentManager::getInstance().removeComponent<MeshComponent>(entity(e));
+template<class T>
+void remove(unsigned int e) {
+	Core::ComponentManager::getInstance().removeComponent<T>(entity(e));
 }
 
 void userLogic() {
 	auto& engine = Core::Engine::getInstance();
 
 	entity e = engine.gEntityManager.create();
-	createMeshComponent(e);
+	create<MeshComponent>((unsigned int)e);
+	create<TransformComponent>((unsigned int)e);
 	engine.gScriptManager.addScript<Player>(e);
 
-	createMeshComponent(3);
-	createMeshComponent(12);
-	createMeshComponent(2);
-	removeMeshComponent(12);
+	create<MeshComponent>(3);
+	create<TransformComponent>(3);
+
+	create<MeshComponent>(12);
+	create<TransformComponent>(12);
+
+	create<MeshComponent>(2);
+	create<TransformComponent>(2);
+
+	remove<MeshComponent>(1);
+	// remove<MeshComponent>(3);
+	remove<MeshComponent>(12);
+	remove<TransformComponent>(2);
 }
 
 void printError(std::string s) {

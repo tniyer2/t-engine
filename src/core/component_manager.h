@@ -4,10 +4,12 @@
 
 #include "component_iterator.h"
 #include "component_array.h"
+#include "component_ptr.h"
 #include "entity.h"
 #include "subsystem.h"
 #include <atomic>
 #include <vector>
+#include <iostream>
 #include <cassert>
 
 namespace TEngine::Core {
@@ -20,6 +22,17 @@ public:
 	static std::string typeName() { return "Core::ComponentManager"; }
 
 	using SubSystem<ComponentManager>::SubSystem;
+
+	template<class T>
+	IComponentArray<T>& getComponentArray() const {
+		int counter = typeIdCounter;
+		int id = getTypeId<T>();
+		assert(counter == typeIdCounter);
+
+		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[(size_t)id - 1]);
+		assert(ptr);
+		return *ptr;
+	}
 
 	template<class T>
 	bool hasComponent(entity e) const {
@@ -76,19 +89,10 @@ public:
 		}
 	}
 private:
-	template<typename T>
+	template<class T>
 	static int getTypeId() {
 		static const int id = typeIdCounter++;
 		return id;
-	}
-
-	template<typename T>
-	IComponentArray<T>& getComponentArray() const {
-		int id = getTypeId<T>();
-		assert(id < typeIdCounter);
-		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[id-1]);
-		assert(ptr);
-		return *ptr;
 	}
 };
 }

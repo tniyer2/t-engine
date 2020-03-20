@@ -81,7 +81,7 @@ private:
 			assert(this->m_freeBucketIndex != INVALID_INDEX);
 
 			index_t blockIndex = useBlock();
-			getBlock(blockIndex) = T();
+			getBlock(blockIndex).emplace<T>(handle);
 			useBucket(handle, blockIndex);
 
 			return true;
@@ -408,10 +408,10 @@ private:
 		const PooledComponentAllocator& m_allocator;
 		Pool* m_pool = nullptr;
 	public:
-		PoolIterator(const PooledComponentAllocator& allocator)
-			: m_allocator(allocator) { }
-		PoolIterator(const PooledComponentAllocator& allocator, Pool* pool)
-			: m_allocator(allocator), m_pool(pool) { }
+		PoolIterator(const PooledComponentAllocator& meshAllocator)
+			: m_allocator(meshAllocator) { }
+		PoolIterator(const PooledComponentAllocator& meshAllocator, Pool* pool)
+			: m_allocator(meshAllocator), m_pool(pool) { }
 
 		PoolIterator& operator++() {
 			assert(m_pool != nullptr);
@@ -477,9 +477,15 @@ public:
 		index_t m_index = INVALID_INDEX;
 	public:
 		PooledComponentIterator(
-			PooledComponentAllocator& allocator, PoolIterator poolIt, index_t index)
-			: m_allocator(allocator), m_poolIt(poolIt), m_index(index) {
+			PooledComponentAllocator& meshAllocator, PoolIterator poolIt, index_t index)
+			: m_allocator(meshAllocator), m_poolIt(poolIt), m_index(index) {
 			increment();
+		}
+
+		operator bool() const override { return m_poolIt; }
+		entity getEntity() override {
+			auto ptr = operator->();
+			return ptr ? ptr->entityId : entity::invalid();
 		}
 
 		PooledComponentIterator& operator++() override {
@@ -487,8 +493,6 @@ public:
 			increment();
 			return *this;
 		}
-
-		operator bool() const override { return m_poolIt; }
 
 		T* operator->() override {
 			assert(m_poolIt);

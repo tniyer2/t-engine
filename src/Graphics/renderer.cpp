@@ -1,5 +1,6 @@
 
 #include "renderer.h"
+#include "../core/component_view.h"
 #include "../core/component_manager.h"
 
 namespace TEngine::Graphics {
@@ -8,10 +9,12 @@ void Renderer::startUp() {
 	SubSystem<Renderer>::startUp();
 
 	m_data = new RendererData(Core::RootAllocator::getInstance());
-	m_data->allocator.reserve(100);
+	m_data->meshAllocator.reserve(100);
+	m_data->transformAllocator.reserve(100);
 
-	Core::ComponentManager::getInstance().registerComponentArray<MeshComponent>(
-		(Core::IComponentArray<MeshComponent>&)m_data->meshArray);
+	auto& compM = Core::ComponentManager::getInstance();
+	compM.registerComponentArray<MeshComponent>(m_data->meshArray);
+	compM.registerComponentArray<TransformComponent>(m_data->transformArray);
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
@@ -28,10 +31,13 @@ void Renderer::update(float deltaTime) {
 	m_data->window.update(deltaTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	auto& compM = Core::ComponentManager::getInstance();
-	auto itptr = compM.begin<MeshComponent>();
-	for (auto& it = *itptr; it; ++it) {
-		std::cout << "mesh id: " << (unsigned int)it->mesh << "\n";
+	auto view = Core::ComponentView<MeshComponent, TransformComponent>();
+	while (view) {
+		auto next = view.next();
+		if (!next.has_value()) continue;
+		auto t = next.value();
+		auto m = std::get<ComponentPtr<MeshComponent>>(t);
+		std::cout << "entity id: " << (unsigned int)m->entityId << "\n";
 	}
 }
 }

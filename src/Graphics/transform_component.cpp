@@ -3,7 +3,7 @@
 
 namespace TEngine::Graphics {
 
-ComponentPtr<TransformComponent> TransformComponent::getChild(index_t index) {
+ComponentPtr<TransformComponent> TransformComponent::getChild(index_t index) const {
 	bool validIndex = index < m_numChildren;
 	assert(validIndex);
 	if (!validIndex) return ComponentPtr<TransformComponent>();
@@ -11,10 +11,10 @@ ComponentPtr<TransformComponent> TransformComponent::getChild(index_t index) {
 	bool forward = index <= m_numChildren / 2;
 
 	entity e = forward ? m_firstChild : m_lastChild;
-	size_t count = forward ? 0 : m_numChildren - 1;
+	index_t count = forward ? 0 : m_numChildren - 1;
 
 	while (e != entity::invalid()) {
-		auto transform = getTransform(e);
+		const auto& transform = getTransform(e);
 		if (index == count) {
 			return transform;
 		}
@@ -55,7 +55,7 @@ void TransformComponent::addChild(index_t index, entity e) {
 	}
 	else {
 		prev->m_nextSibling = e;
-		newChild->m_prevSibling = prev->m_self;
+		newChild->m_prevSibling = prev->entityId;
 	}
 
 	if (last) {
@@ -64,26 +64,26 @@ void TransformComponent::addChild(index_t index, entity e) {
 	}
 	else {
 		next->m_prevSibling = e;
-		newChild->m_nextSibling = next->m_self;
+		newChild->m_nextSibling = next->entityId;
 	}
 
-	newChild->m_parent = m_self;
+	newChild->m_parent = entityId;
 	m_numChildren++;
 }
 
 void TransformComponent::removeChild(entity e) {
-	removeChild(getTransform(e));
+	_removeChild(getTransform(e));
 }
 
 void TransformComponent::removeChild(index_t index) {
-	removeChild(getChild(index));
+	_removeChild(getChild(index));
 }
 
-void TransformComponent::removeChild(ComponentPtr<TransformComponent> child) {
+void TransformComponent::_removeChild(ComponentPtr<TransformComponent> child) {
 	assert(child);
 	if (!child) return;
 
-	bool myChild = child->m_parent == m_self;
+	bool myChild = child->m_parent == entityId;
 	assert(myChild);
 	if (!myChild) return;
 
@@ -110,5 +110,9 @@ void TransformComponent::removeChild(ComponentPtr<TransformComponent> child) {
 	child->m_nextSibling = entity::invalid();
 	child->m_parent = entity::invalid();
 	m_numChildren--;
+}
+
+ComponentPtr<TransformComponent> TransformComponent::getTransform(entity e) {
+	return Core::ComponentManager::getInstance().getComponent<TransformComponent>(e);
 }
 }

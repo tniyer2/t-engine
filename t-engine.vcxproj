@@ -156,8 +156,10 @@
     <ClInclude Include="src\core\component_array.h" />
     <ClInclude Include="src\core\component_manager.h" />
     <ClInclude Include="src\core\component_ptr.h" />
+    <ClInclude Include="src\core\component_view.h" />
     <ClInclude Include="src\core\entity.h" />
     <ClInclude Include="src\core\entity_manager.h" />
+    <ClInclude Include="src\core\component.h" />
     <ClInclude Include="src\core\id.h" />
     <ClInclude Include="src\core\memory.h" />
     <ClInclude Include="src\core\pooled_component_allocator.h" />
@@ -177,7 +179,6 @@
     <ClInclude Include="src\graphics\renderer.h" />
     <ClInclude Include="src\Graphics\shader.h" />
     <ClInclude Include="src\graphics\transform_component.h" />
-    <ClInclude Include="src\graphics\transform_component_array.h" />
     <ClInclude Include="src\Graphics\window.h" />
     <ClInclude Include="src\input\input.h" />
     <ClInclude Include="src\utility\boolean.h" />

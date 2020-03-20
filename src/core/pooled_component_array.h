@@ -11,6 +11,7 @@ namespace TEngine::Core {
 
 template<class T>
 class PooledComponentArray : public IComponentArray<T> {
+	using Iterator = typename PooledComponentAllocator<T>::PooledComponentIterator;
 protected:
 	PooledComponentAllocator<T>& m_allocator;
 public:
@@ -28,9 +29,12 @@ public:
 		return ComponentPtr<T>(m_allocator, e);
 	}
 
-	std::shared_ptr<IComponentIterator<T>> begin() const override {
-		auto ptr = new typename PooledComponentAllocator<T>::PooledComponentIterator(m_allocator.begin());
-		return std::shared_ptr<IComponentIterator<T>>(ptr);
+	std::unique_ptr<IComponentIterator<T>> begin() const override {
+		return std::unique_ptr<IComponentIterator<T>>(_begin());
+	}
+
+	std::unique_ptr<TU_IComponentIterator> TUbegin() const override {
+		return std::unique_ptr<TU_IComponentIterator>(_begin());
 	}
 
 	ComponentPtr<T> addComponent(entity e) override {
@@ -47,6 +51,10 @@ public:
 
 	bool removeIfComponent(entity e) override {
 		return m_allocator.has(e) ? removeComponent(e) : true;
+	}
+private:
+	IComponentIterator<T>* _begin() const  {
+		return new typename PooledComponentAllocator<T>::PooledComponentIterator(m_allocator.begin());
 	}
 };
 }
