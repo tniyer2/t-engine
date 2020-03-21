@@ -14,6 +14,8 @@ private:
 	IComponentAllocator<T>* m_allocator = nullptr;
 	entity m_entity;
 public:
+	static ComponentPtr invalid() { return ComponentPtr(); }
+
 	ComponentPtr() { }
 	ComponentPtr(IComponentAllocator<T>& a, entity e)
 		: m_allocator(&a), m_entity(e) {

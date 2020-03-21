@@ -57,20 +57,6 @@ void userLogic() {
 	create<MeshComponent>((unsigned int)e);
 	create<TransformComponent>((unsigned int)e);
 	engine.gScriptManager.addScript<Player>(e);
-
-	create<MeshComponent>(3);
-	create<TransformComponent>(3);
-
-	create<MeshComponent>(12);
-	create<TransformComponent>(12);
-
-	create<MeshComponent>(2);
-	create<TransformComponent>(2);
-
-	remove<MeshComponent>(1);
-	// remove<MeshComponent>(3);
-	remove<MeshComponent>(12);
-	remove<TransformComponent>(2);
 }
 
 void printError(std::string s) {

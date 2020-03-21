@@ -35,43 +35,43 @@ void Model::loadModel(std::string const& path) {
 
 void Model::processNode(aiNode* node, const aiScene* scene) {
 	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(processMesh(mesh, scene));
+		aiMesh* meshId = scene->mMeshes[node->mMeshes[i]];
+		meshes.push_back(processMesh(meshId, scene));
 	}
 	for (unsigned int i = 0; i < node->mNumChildren; i++) {
 		processNode(node->mChildren[i], scene);
 	}
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
+Mesh Model::processMesh(aiMesh* meshId, const aiScene* scene) {
 	// data to fill
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
 
 	// Walk through each of the mesh's vertices
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+	for (unsigned int i = 0; i < meshId->mNumVertices; i++)
 	{
 		Vertex vertex;
 		glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 		// positions
-		vector.x = mesh->mVertices[i].x;
-		vector.y = mesh->mVertices[i].y;
-		vector.z = mesh->mVertices[i].z;
+		vector.x = meshId->mVertices[i].x;
+		vector.y = meshId->mVertices[i].y;
+		vector.z = meshId->mVertices[i].z;
 		vertex.Position = vector;
 		// normals
-		vector.x = mesh->mNormals[i].x;
-		vector.y = mesh->mNormals[i].y;
-		vector.z = mesh->mNormals[i].z;
+		vector.x = meshId->mNormals[i].x;
+		vector.y = meshId->mNormals[i].y;
+		vector.z = meshId->mNormals[i].z;
 		vertex.Normal = vector;
 		// texture coordinates
-		if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+		if (meshId->mTextureCoords[0]) // does the mesh contain texture coordinates?
 		{
 			glm::vec2 vec;
 			// a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
 			// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
-			vec.x = mesh->mTextureCoords[0][i].x;
-			vec.y = mesh->mTextureCoords[0][i].y;
+			vec.x = meshId->mTextureCoords[0][i].x;
+			vec.y = meshId->mTextureCoords[0][i].y;
 			vertex.TexCoords = vec;
 		}
 		else {
@@ -90,15 +90,15 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		vertices.push_back(vertex);
 	}
 	// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	for (unsigned int i = 0; i < meshId->mNumFaces; i++)
 	{
-		aiFace face = mesh->mFaces[i];
+		aiFace face = meshId->mFaces[i];
 		// retrieve all indices of the face and store them in the indices vector
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 			indices.push_back(face.mIndices[j]);
 	}
 	// process materials
-	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+	aiMaterial* material = scene->mMaterials[meshId->mMaterialIndex];
 	// we assume a convention for sampler names in the shaders. Each diffuse texture should be named
 	// as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
 	// Same applies to other texture as the following list summarizes:

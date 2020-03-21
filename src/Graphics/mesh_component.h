@@ -9,10 +9,11 @@
 namespace TEngine::Graphics {
 
 struct MeshComponent : public Core::IComponent {
-	const Core::entity entityId;
-	meshId mesh;
+	const entity entityId;
+	mesh meshId;
+	unsigned int VAO = 0;
 
-	MeshComponent(Core::entity e) : entityId(e) { }
+	MeshComponent(entity e) : entityId(e) { }
 };
 }
 #endif
