@@ -147,9 +147,9 @@ void Callbacks::mouse_callback(GLFWwindow* windowPtr, double xpos, double ypos) 
 	window->input.pushMouseEvent(xpos, ypos);
 }
 
-void Callbacks::scroll_callback(GLFWwindow* windowPtr, double xoffset, double yoffset) {
+void Callbacks::scroll_callback(GLFWwindow* windowPtr, double offsetX, double offsetY) {
 	Window* window = (Window*)glfwGetWindowUserPointer(windowPtr);
-	window->input.pushScrollEvent(xoffset, yoffset);
+	window->input.pushScrollEvent(offsetX, offsetY);
 }
 
 void error_callback(int error, const char* description) {

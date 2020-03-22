@@ -43,21 +43,21 @@ void Camera::processMouseMovement(float posx, float posy, GLboolean constrainPit
 		m_lastMouseX = posx;
 		m_lastMouseY = posy;
 	}
-	float xoffset = posx - m_lastMouseX;
-	float yoffset = m_lastMouseY - posy;
+	float offsetX = posx - m_lastMouseX;
+	float offsetY = m_lastMouseY - posy;
 	m_lastMouseX = posx;
 	m_lastMouseY = posy;
 
-	xoffset *= mouseSensitivity;
-	yoffset *= mouseSensitivity;
+	offsetX *= mouseSensitivity;
+	offsetY *= mouseSensitivity;
 
-	m_matrix = rotate(m_matrix, xoffset, vec3(getUp()));
+	m_matrix = rotate(m_matrix, offsetX, vec3(getUp()));
 	// m_matrix = rotate(m_matrix, yoffset, getRight());
 }
 
-void Camera::processMouseScroll(float yoffset) {
+void Camera::processMouseScroll(float offsetY) {
 	if (zoom >= 1.0f && zoom <= 45.0f) {
-		zoom -= yoffset;
+		zoom -= offsetY;
 	}
 	if (zoom <= 1.0f) {
 		zoom = 1.0f;

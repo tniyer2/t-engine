@@ -25,65 +25,61 @@ enum class KeyModifiers {
 	numLock=0x20
 };
 
-struct InputEvent {};
+struct KeyEvent {
+	int keycode = 0;
+	KeyState state = KeyState::none;
+	int mods = 0;
+	std::string character = "";
 
-struct KeyEvent : InputEvent {
-	unsigned char keycode;
-	KeyState state;
-	unsigned char mods;
-	std::string character;
+	KeyEvent(int keycode, std::string character)
+		: keycode(keycode), character(character) { }
 
-	KeyEvent(unsigned char keycode)
-		: keycode(keycode), state(KeyState::none), mods(0), character("") { }
-	KeyEvent(unsigned char keycode, KeyState state, unsigned char mods, std::string character)
+	KeyEvent(int keycode, KeyState state, int mods, std::string character)
 		: keycode(keycode), state(state), mods(mods), character(character) { }
 };
 
-struct MouseEvent : InputEvent {
-	float posX, posY;
-	MouseEvent()
-		: posX(0), posY(0) { }
-	MouseEvent(float x, float y)
-		: posX(x), posY(y) { }
+struct MouseEvent {
+	float posX = 0;
+	float posY = 0;
+
+	MouseEvent() { }
+	MouseEvent(float x, float y) : posX(x), posY(y) { }
 };
 
-struct ScrollEvent : InputEvent {
-	float xoffset, yoffset;
-	ScrollEvent()
-		: xoffset(0), yoffset(0) { }
-	ScrollEvent(float x, float y)
-		: xoffset(x), yoffset(y) { }
-};
+struct ScrollEvent {
+	float offsetX = 0;
+	float offsetY = 0;
 
-KeyState translate_key_action(int action);
-std::map<int, int> get_key_translations();
-std::map<std::string, int> get_text_translations();
+	ScrollEvent() { }
+	ScrollEvent(float x, float y) : offsetX(x), offsetY(y) { }
+};
 
 class Input {
 private:
-	std::array<char, 98> m_keys;
-	std::vector<KeyEvent> m_keyEvents;
-	std::map<int, int> m_glfwToKey; // Maps GLFW key codes to a contiguous range for convenience.
-	std::map<std::string, int> m_textToKey; // Maps strings to (not GLFW) key codes.
-	MouseEvent m_mouseEvent;
-	ScrollEvent m_scrollEvent;
+	std::map<int, int> m_glfwToKey; // maps GLFW key codes to contiguous key codes.
+	std::map<std::string, int> m_textToKey; // maps strings to contiguous key codes.
+
+	std::array<int, 98> m_keys; // maps keycode to index in m_keyEvents.
+	std::vector<KeyEvent> m_keyEvents; // current KeyEvents
+	MouseEvent m_mouseEvent; // current MouseEvent
+	ScrollEvent m_scrollEvent; // current ScrollEvent
 public:
 	Input();
 	Input(const Input&) = delete;
 	void operator=(const Input&) = delete;
 
-	void clear();
+	void pushKeyEvent(int, int, int, int); // sets current KeyEvent for keycode.
+	void pushMouseButtonEvent(int, int, int); // sets current KeyEvent for mouse button.
+	void pushMouseEvent(double, double); // sets current MouseEvent.
+	void pushScrollEvent(double, double); // sets current ScrollEvent.
 
-	void pushKeyEvent(int, int, int, int);
-	void pushMouseButtonEvent(int, int, int);
-	void pushMouseEvent(double, double);
-	void pushScrollEvent(double, double);
+	void clear(); // clears all event information.
 
-	KeyEvent pollKey(std::string);
-	bool isKeyDown(std::string);
+	KeyEvent pollKey(std::string); // returns KeyEvent for character, default if not found.
+	bool isKeyDown(std::string); // returns true if KeyEvent for character.
 
-	MouseEvent getMouseInfo() { return m_mouseEvent; }
-	ScrollEvent getScrollInfo() { return m_scrollEvent; }
+	MouseEvent pollMouse() { return m_mouseEvent; }
+	ScrollEvent pollScroll() { return m_scrollEvent; }
 };
 }
 #endif
