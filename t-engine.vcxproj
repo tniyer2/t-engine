@@ -178,7 +178,9 @@
     <ClInclude Include="src\Graphics\model.h" />
     <ClInclude Include="src\graphics\renderer.h" />
     <ClInclude Include="src\Graphics\shader.h" />
+    <ClInclude Include="src\graphics\sorted_transform_iterator.h" />
     <ClInclude Include="src\graphics\transform_component.h" />
+    <ClInclude Include="src\graphics\transform_component_array.h" />
     <ClInclude Include="src\Graphics\window.h" />
     <ClInclude Include="src\input\input.h" />
     <ClInclude Include="src\utility\boolean.h" />

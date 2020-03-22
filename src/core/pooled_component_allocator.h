@@ -449,7 +449,7 @@ private:
 			return temp;
 		}
 
-		operator bool() const { return m_pool; }
+		explicit operator bool() const { return m_pool; }
 
 		Pool* operator->() {
 			assert(m_pool);
@@ -482,7 +482,7 @@ public:
 			increment();
 		}
 
-		operator bool() const override { return m_poolIt; }
+		explicit operator bool() const override { return (bool)m_poolIt; }
 		entity getEntity() override {
 			auto ptr = operator->();
 			return ptr ? ptr->entityId : entity::invalid();

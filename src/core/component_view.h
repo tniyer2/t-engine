@@ -47,7 +47,7 @@ private:
 	ComponentPtr<T> getComponentPtr(entity id, bool& allPresent) {
 		if (allPresent) {
 			auto c = std::get<IComponentArray<T>*>(m_typedArrays)->getComponent(id);
-			allPresent = c;
+			allPresent = (bool)c;
 			return allPresent ? c : ComponentPtr<T>();
 		}
 		else {
@@ -67,7 +67,7 @@ public:
 	ComponentView() : ComponentView(ComponentManager::getInstance()) { }
 	~ComponentView() { delete m_it; }
 
-	operator bool() const { return m_it->operator bool(); }
+	explicit operator bool() const { return m_it->operator bool(); }
 
 	std::optional<std::tuple<ComponentPtr<Ts>...>> next() {
 		entity id = m_it->getEntity();

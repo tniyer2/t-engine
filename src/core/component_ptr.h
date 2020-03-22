@@ -22,7 +22,7 @@ public:
 		assert(m_entity != entity::invalid());
 	}
 
-	operator bool() const {
+	explicit operator bool() const {
 		return m_allocator && m_allocator->has(m_entity);
 	}
 

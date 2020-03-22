@@ -6,7 +6,7 @@
 using namespace TEngine;
 using Core::entity;
 using Graphics::MeshComponent;
-using Graphics::TransformComponent;
+using Graphics::Transform;
 
 static std::string ERROR_DIVIDER = std::string(60, '-');
 
@@ -41,22 +41,28 @@ public:
 };
 
 template<class T>
-void create(unsigned int e) {
-	Core::ComponentManager::getInstance().addComponent<T>(entity(e));
+auto create(entity id) {
+	return Core::ComponentManager::getInstance().addComponent<T>(id);
 }
 
 template<class T>
-void remove(unsigned int e) {
-	Core::ComponentManager::getInstance().removeComponent<T>(entity(e));
+void remove(entity id) {
+	Core::ComponentManager::getInstance().removeComponent<T>(id);
 }
 
 void userLogic() {
 	auto& engine = Core::Engine::getInstance();
+	auto& entM = engine.gEntityManager;
 
-	entity e = engine.gEntityManager.create();
-	create<MeshComponent>((unsigned int)e);
-	create<TransformComponent>((unsigned int)e);
-	engine.gScriptManager.addScript<Player>(e);
+	entity player = entM.create();
+	create<MeshComponent>(player);
+	auto playerTransform = create<Transform>(player);
+	engine.gScriptManager.addScript<Player>(player);
+
+	entity hand = entM.create();
+	auto handTransform = create<Transform>(hand);
+	playerTransform->addChild(handTransform);
+
 }
 
 void printError(std::string s) {

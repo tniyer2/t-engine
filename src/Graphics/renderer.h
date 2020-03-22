@@ -6,6 +6,7 @@
 #include "../core/pooled_component_array.h"
 #include "../core/subsystem.h"
 #include "transform_component.h"
+#include "transform_component_array.h"
 #include "mesh_component.h"
 #include "mesh.h"
 #include "mesh_id.h"
@@ -17,22 +18,22 @@ namespace TEngine::Graphics {
 class Renderer : public Core::SubSystem<Renderer> {
 	using MeshPool = Core::PooledComponentAllocator<MeshComponent>;
 	using MeshArray = Core::PooledComponentArray<MeshComponent>;
-	using TransformPool = Core::PooledComponentAllocator<TransformComponent>;
-	using TransformArray = Core::PooledComponentArray<TransformComponent>;
+	using TransformPool = Core::PooledComponentAllocator<Transform>;
 
 	struct RendererData {
 		Window window;
 		MeshPool meshAllocator;
 		MeshArray meshArray;
 		TransformPool transformAllocator;
-		TransformArray transformArray;
+		TransformComponentArray transformArray;
 
-		RendererData(Core::IRootAllocator& root)
-			: meshAllocator(root), meshArray(meshAllocator),
-			transformAllocator(root), transformArray(transformAllocator) { }
+		RendererData(Core::IRootAllocator& a)
+			: meshAllocator(a), meshArray(meshAllocator),
+			transformAllocator(a), transformArray(transformAllocator) { }
 	};
 private:
 	RendererData* m_data = nullptr;
+	ComponentPtr<Transform> m_root;
 public:
 	static std::string typeName() { return "Graphics::Renderer"; }
 	using SubSystem<Renderer>::SubSystem;

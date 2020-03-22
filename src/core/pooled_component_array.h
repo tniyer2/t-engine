@@ -44,13 +44,17 @@ public:
 	}
 
 	bool removeComponent(entity e) override {
-		bool freed = m_allocator.free(e);
-		assert(freed);
-		return freed;
+		return _removeComponent(e);
 	}
 
 	bool removeIfComponent(entity e) override {
-		return m_allocator.has(e) ? removeComponent(e) : true;
+		return m_allocator.has(e) ? _removeComponent(e) : true;
+	}
+protected:
+	virtual bool _removeComponent(entity e) {
+		bool removed = m_allocator.free(e);
+		assert(removed);
+		return removed;
 	}
 private:
 	IComponentIterator<T>* _begin() const  {

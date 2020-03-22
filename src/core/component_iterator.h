@@ -8,9 +8,9 @@ namespace TEngine::Core {
 
 class TU_IComponentIterator {
 public:
-	virtual operator bool() const = 0;
-	virtual TU_IComponentIterator& operator++() = 0;
+	virtual explicit operator bool() const = 0;
 	virtual entity getEntity() = 0;
+	virtual TU_IComponentIterator& operator++() = 0;
 };
 
 template<class T>

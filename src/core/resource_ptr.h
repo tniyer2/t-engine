@@ -14,7 +14,7 @@ public:
 	ResourcePtr() { }
 	ResourcePtr(T* ptr) : m_ptr(ptr) { }
 
-	operator bool() const { return m_ptr; }
+	explicit operator bool() const { return m_ptr; }
 
 	T* operator->() {
 		assert(m_ptr); return m_ptr;
