@@ -146,6 +146,7 @@
     <ClCompile Include="src\Graphics\window.cpp" />
     <ClCompile Include="src\input\input.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\utility\boolean.cpp" />
     <ClCompile Include="src\utility\glm_to_string.cpp" />
     <ClCompile Include="src\utility\timer.cpp" />
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "entity.h"
 #include "../utility/boolean.h"
 #include <variant>
+#include <cassert>
 
 namespace TEngine::Core {
 

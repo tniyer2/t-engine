@@ -40,7 +40,7 @@ void Renderer::update(float deltaTime) {
 		if (!next.has_value()) continue;
 		auto t = next.value();
 		auto m = std::get<ComponentPtr<MeshComponent>>(t);
-		std::cout << "entity id: " << (unsigned int)m->entityId << "\n";
+		// std::cout << "entity id: " << (unsigned int)m->entityId << "\n";
 	}
 }
 }

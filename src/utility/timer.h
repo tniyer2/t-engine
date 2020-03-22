@@ -6,21 +6,24 @@ namespace TEngine::Utility {
 
 class Timer {
 private:
-	float m_frameRate;
-	float m_avgFrameRate;
-	float m_maxFrameRate;
+	constexpr static float FRAME_RATE = 1.0 / 60.0;
+	constexpr static float MAX_FRAME_RATE = 0.25;
+
+	float m_frameRate = 0;
+	float m_maxFrameRate = 0;
+	float m_avgFrameRate = 0;
 	float m_lastFrame = 0;
 public:
-	Timer(float frameRate=1.0/60, float maxFrameRate=0.25)
-		: m_frameRate(frameRate), m_maxFrameRate(maxFrameRate) {
-		m_avgFrameRate = m_frameRate;
-	}
-	Timer(float frameRate, float maxFrameRate, float avgFrameRate)
-		: m_frameRate(frameRate), m_maxFrameRate(maxFrameRate), m_avgFrameRate(avgFrameRate) { }
+	Timer() : Timer(FRAME_RATE, MAX_FRAME_RATE, FRAME_RATE) { }
+	Timer(float rate) : Timer(rate, MAX_FRAME_RATE, rate) { }
+	Timer(float rate, float max) : Timer(rate, max, rate) { }
 
-	/* returns the time passed since the last frame,
-	   or 0 if it is less than the fixed frame rate. */
-	float step(float);
+	Timer(float rate, float max, float avg)
+		: m_frameRate(rate),
+		m_maxFrameRate(max),
+		m_avgFrameRate(avg) { }
+
+	float step(float); 	// returns delta time, 0 if less than m_frameRate.
 };
 }
 #endif

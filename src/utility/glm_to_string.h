@@ -6,12 +6,8 @@
 #include <string>
 
 namespace TEngine::Utility {
-	using std::string;
-	using std::to_string;
-	using glm::vec4;
-	using glm::mat4;
 
-	string to_string(vec4);
-	string to_string(mat4);
+	std::string to_string(glm::vec4);
+	std::string to_string(glm::mat4);
 }
 #endif

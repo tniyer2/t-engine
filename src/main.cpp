@@ -8,7 +8,7 @@ using Core::entity;
 using Graphics::MeshComponent;
 using Graphics::Transform;
 
-static std::string ERROR_DIVIDER = std::string(60, '-');
+const static std::string ERROR_DIVIDER = std::string(60, '-') + "\n";
 
 class Player : public Core::Script {
 private:
@@ -62,22 +62,25 @@ void userLogic() {
 	entity hand = entM.create();
 	auto handTransform = create<Transform>(hand);
 	playerTransform->addChild(handTransform);
-
 }
 
-void printError(std::string s) {
-	std::cout << ERROR_DIVIDER << "\n\nERROR: " << s << "\n\n" << ERROR_DIVIDER << "\n";
+void start() {
+	Core::Engine gEngine;
+	gEngine.startUp();
+	userLogic();
+	gEngine.runGameLoop();
+	gEngine.shutDown();
+}
+
+void printError(std::string message) {
+	std::cout << ERROR_DIVIDER << "ERROR: " << message << "\n" << ERROR_DIVIDER;
 }
 
 int main() {
 	try {
-		Core::Engine gEngine;
-		gEngine.startUp();
-		userLogic();
-		gEngine.runGameLoop();
-		gEngine.shutDown();
+		start();
 	}
-	catch (std::exception & e) {
+	catch (std::exception& e) {
 		printError(e.what());
 		throw;
 	}
@@ -85,7 +88,7 @@ int main() {
 		printError(e);
 		throw;
 	}
-	catch (std::string e) {
+	catch (std::string& e) {
 		printError(e);
 		throw;
 	}
