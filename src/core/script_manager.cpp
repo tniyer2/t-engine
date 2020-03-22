@@ -49,15 +49,12 @@ bool ScriptManager::removeIfScript(entity e) {
 }
 
 bool ScriptManager::_removeScript(entity e) {
-	auto it = m_scripts.find(e);
-	bool exists = it != m_scripts.end();
-	if (!exists) return false;
-	m_scripts.erase(it);
+	auto scriptIt = m_scripts.find(e);
+	if (scriptIt == m_scripts.end()) return false;
+	m_scripts.erase(scriptIt);
 
-	auto it2 = m_newScripts.find(e);
-	if (it2 != m_newScripts.end()) {
-		m_newScripts.erase(it);
-	}
+	auto newIt = m_newScripts.find(e);
+	if (newIt != m_newScripts.end()) m_newScripts.erase(newIt);
 	return true;
 }
 }

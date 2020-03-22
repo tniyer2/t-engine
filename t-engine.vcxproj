@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\core.cpp" />
     <ClCompile Include="src\core\entity_manager.cpp" />
     <ClCompile Include="src\core\memory.cpp" />
     <ClCompile Include="src\core\resource_manager.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="src\core\component_manager.h" />
     <ClInclude Include="src\core\component_ptr.h" />
     <ClInclude Include="src\core\component_view.h" />
+    <ClInclude Include="src\core\core.h" />
     <ClInclude Include="src\core\entity.h" />
     <ClInclude Include="src\core\entity_manager.h" />
     <ClInclude Include="src\core\component.h" />

@@ -99,6 +99,9 @@
     <ClCompile Include="src\utility\boolean.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\core.cpp">
+      <Filter>Source Files\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utility\boolean.h">
@@ -206,8 +209,11 @@
     <ClInclude Include="src\graphics\sorted_transform_iterator.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\core.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\graphics\transform_component_array.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

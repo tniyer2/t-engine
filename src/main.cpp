@@ -1,10 +1,13 @@
 
 #include "engine.h"
+#include "core/core.h"
 #include <iostream>
 #include <string>
 
 using namespace TEngine;
 using Core::entity;
+using Core::create;
+using Core::destroy;
 using Graphics::MeshComponent;
 using Graphics::Transform;
 
@@ -40,28 +43,20 @@ public:
 	}
 };
 
-template<class T>
-auto create(entity id) {
-	return Core::ComponentManager::getInstance().addComponent<T>(id);
-}
-
-template<class T>
-void remove(entity id) {
-	Core::ComponentManager::getInstance().removeComponent<T>(id);
-}
-
 void userLogic() {
-	auto& engine = Core::Engine::getInstance();
-	auto& entM = engine.gEntityManager;
-
-	entity player = entM.create();
+	entity player = create<entity>();
 	create<MeshComponent>(player);
 	auto playerTransform = create<Transform>(player);
-	engine.gScriptManager.addScript<Player>(player);
+	Core::addScript<Player>(player);
+	Core::removeScript(player);
 
-	entity hand = entM.create();
+	entity hand = create<entity>();
 	auto handTransform = create<Transform>(hand);
+	assert(handTransform);
 	playerTransform->addChild(handTransform);
+
+	destroy<entity>(hand);
+	destroy<Transform>(player);
 }
 
 void start() {
