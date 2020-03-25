@@ -6,42 +6,43 @@
 #include "entity.h"
 #include "subsystem.h"
 #include <map>
+#include <string>
 #include <cassert>
 
 namespace TEngine::Core {
 
 class ScriptManager : public SubSystem<ScriptManager> {
 private:
-	std::map<entity, Script*> m_scripts; // holds all scripts
-	std::map<entity, Script*> m_newScripts; // holds scripts not called Awake on
+	std::map<entity, Script*> m_allScripts;
+	std::map<entity, Script*> m_newScripts;
 public:
 	static std::string typeName() { return "Core::ScriptManager"; }
 
 	using SubSystem<ScriptManager>::SubSystem;
 
-	void shutDown();
-	void update(float); // calls awake on new scripts and update on all scripts.
+	void shutDown() override;
+	void update(float); // Awake(s) new scripts and Update(s) all scripts.
 
-	// adds script to entity. asserts entity has no script attached.
+	bool hasScript(entity) const;
+	Script* getScript(entity) const;
+
 	template<class T>
-	void addScript(entity e) {
+	void addScript(entity id) {
 		checkRunning();
 
-		bool exists = hasScript(e);
-		assert(!exists);
-		if (exists) return;
+		if (hasScript(id)) {
+			throw "Invalid Argument. Script for id already exists.";
+		}
 
-		Script* script = new T(e);
-		m_scripts[e] = script;
-		m_newScripts[e] = script;
+		Script* script = new T(id);
+		m_allScripts[id] = script;
+		m_newScripts[id] = script;
 	}
 
-	bool hasScript(entity);
-	Script* getScript(entity);
-	void removeScript(entity); // asserts removal.
-	bool removeIfScript(entity); // does not assert removal.
+	void removeScript(entity);
+	bool removeIfScript(entity);
 private:
-	bool _removeScript(entity); // removes script and returns if removed.
+	bool _removeScript(entity);
 };
 }
 #endif

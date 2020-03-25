@@ -1,23 +1,26 @@
 
 #include "renderer.h"
-#include "../core/component_view.h"
-#include "../core/component_manager.h"
+
+#include "depth_first_transform_iterator.h"
+#include "core/component_view.h"
+#include "core/component_manager.h"
+#include "core/component_handle.h"
+#include "utility/glm_to_string.h"
 
 namespace TEngine::Graphics {
 
 void Renderer::startUp() {
 	SubSystem<Renderer>::startUp();
 
-	auto& compM = Core::ComponentManager::getInstance();
-
 	m_data = new RendererData(Core::RootAllocator::getInstance());
 	m_data->meshAllocator.reserve(100);
 	m_data->transformAllocator.reserve(100);
 
+	auto& compM = Core::ComponentManager::getInstance();
 	compM.registerComponentArray<MeshComponent>(m_data->meshArray);
 	compM.registerComponentArray<Transform>(m_data->transformArray);
 
-	m_root = m_data->transformArray.setRoot();
+	m_data->transformArray.setRootTransform();
 
 	glClearColor(0, 0.5, 1, 0);
 	glEnable(GL_DEPTH_TEST);
@@ -34,13 +37,15 @@ void Renderer::update(float deltaTime) {
 	m_data->window.update(deltaTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	auto view = Core::ComponentView<MeshComponent, Transform>();
-	while (view) {
-		auto next = view.next();
-		if (!next.has_value()) continue;
-		auto t = next.value();
-		auto m = std::get<ComponentPtr<MeshComponent>>(t);
-		std::cout << "entity id: " << (unsigned int)m->entityId << "\n";
+	m_time += deltaTime;
+	if (m_time >= 0 && m_time < 3.0f) return;
+	else m_time = 0;
+
+	auto it = DepthFirstTransformIterator(Transform::getRoot());
+	for (; it; ++it) {
+		std::cout << "id: " << (unsigned int)(entity)it->entityId << "\n";
+		std::cout << "local matrix:\n" << Utility::to_string(it->getLocalMatrix()) << "\n";
+		std::cout << "world matrix:\n" << Utility::to_string(it->getWorldMatrix()) << "\n";
 	}
 }
 }

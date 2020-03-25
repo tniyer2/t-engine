@@ -2,7 +2,7 @@
 #ifndef GRAPHICS_WINDOW_H
 #define GRAPHICS_WINDOW_H
 
-#include "../input/input.h"
+#include "input/input.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

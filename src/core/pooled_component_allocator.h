@@ -5,7 +5,7 @@
 #include "component_allocator.h"
 #include "component_iterator.h"
 #include "entity.h"
-#include "../utility/boolean.h"
+#include "utility/boolean.h"
 #include <variant>
 #include <cassert>
 
@@ -49,18 +49,17 @@ private:
 			initBuckets();
 			initBlocks();
 		}
-		~Pool() {}
 
-		bool has(entity handle) {
+		bool has(entity handle) const {
 			index_t index = getBucketIndex(handle);
 			return index != INVALID_INDEX;
 		}
 
-		bool has(index_t index) {
-			return get(index) != nullptr;
+		bool has(index_t index) const {
+			return get(index);
 		}
 
-		T* get(entity handle) {
+		T* get(entity handle) const {
 			index_t index = getBucketIndex(handle);
 			if (index == INVALID_INDEX) return nullptr;
 
@@ -68,7 +67,7 @@ private:
 			return getBlockAs<T>(b.value);
 		}
 
-		T* get(index_t index) {
+		T* get(index_t index) const {
 			if (index == INVALID_INDEX) return nullptr;
 			return getBlockAs<T>(index);
 		}
@@ -123,16 +122,16 @@ private:
 			}
 		}
 
-		inline index_t hash(entity handle) {
+		index_t hash(entity handle) const {
 			return (unsigned int)handle % this->m_numBlocks;
 		}
 
-		inline Bucket& getBucket(index_t index) {
+		Bucket& getBucket(index_t index) const {
 			assert(index < this->m_numBlocks);
 			return this->m_buckets[index];
 		}
 
-		index_t getBucketIndex(entity handle) {
+		index_t getBucketIndex(entity handle) const {
 			index_t index = hash(handle);
 
 			while (index != INVALID_INDEX) {
@@ -274,18 +273,18 @@ private:
 			}
 		}
 
-		inline Block& getBlock(index_t index) {
+		Block& getBlock(index_t index) const {
 			assert(index < this->m_numBlocks);
 			return this->m_blocks[index];
 		}
 
 		template<typename U>
-		inline U* getBlockAs(index_t index) {
+		U* getBlockAs(index_t index) const {
 			return std::get_if<U>(&getBlock(index));
 		}
 
 		template<typename U>
-		inline U& getBlockRefAs(index_t index) {
+		U& getBlockRefAs(index_t index) const {
 			U* ptr = getBlockAs<U>(index);
 			assert(ptr);
 			return *ptr;
@@ -409,14 +408,18 @@ private:
 		const PooledComponentAllocator& m_allocator;
 		Pool* m_pool = nullptr;
 	public:
-		PoolIterator(const PooledComponentAllocator& meshAllocator)
-			: m_allocator(meshAllocator) { }
-		PoolIterator(const PooledComponentAllocator& meshAllocator, Pool* pool)
-			: m_allocator(meshAllocator), m_pool(pool) { }
+		PoolIterator(const PooledComponentAllocator& allocator)
+			: m_allocator(allocator) { }
+
+		PoolIterator(const PooledComponentAllocator& allocator, Pool* pool)
+			: m_allocator(allocator), m_pool(pool) { }
 
 		PoolIterator& operator++() {
-			assert(m_pool != nullptr);
-			if (m_pool == m_allocator.m_pEnd) {
+			if (!m_pool) {
+				throw "Invalid State. PoolIterator cannot increment.";
+			}
+
+			if (m_pool == m_allocator.m_poolEnd) {
 				m_pool = nullptr;
 			}
 			else {
@@ -426,16 +429,14 @@ private:
 			}
 			return *this;
 		}
-		PoolIterator operator++(int) {
-			PoolIterator temp(*this);
-			operator++();
-			return temp;
-		}
 
 		PoolIterator& operator--() {
-			assert(m_pool != m_allocator.m_pStart);
+			if (m_pool == m_allocator.m_poolStart) {
+				throw "Invalid State. PoolIterator cannot decrement.";
+			}
+
 			if (m_pool == nullptr) {
-				m_pool = m_allocator.m_pEnd;
+				m_pool = m_allocator.m_poolEnd;
 			}
 			else {
 				auto ptr = m_pool->prev;
@@ -444,30 +445,18 @@ private:
 			}
 			return *this;
 		}
-		PoolIterator operator--(int) {
-			PoolIterator temp(*this);
-			operator--();
-			return temp;
-		}
 
 		explicit operator bool() const { return m_pool; }
 
-		Pool* operator->() {
-			assert(m_pool);
-			return m_pool;
-		}
-		const Pool* operator->() const {
-			assert(m_pool);
-			return m_pool;
-		}
+		const Pool* operator->() const { return m_pool; }
+		Pool* operator->() { return m_pool; }
 
-		Pool& operator*() {
-			assert(m_pool);
-			return *m_pool;
-		}
 		const Pool& operator*() const {
-			assert(m_pool);
-			return *m_pool;
+			if (m_pool) return *m_pool;
+			else throw "PoolIterator could not dereference pointer.";
+		}
+		Pool& operator*() {
+			return const_cast<Pool&>(static_cast<const PoolIterator&>(*this).operator*());
 		}
 	};
 public:
@@ -478,51 +467,27 @@ public:
 		index_t m_index = INVALID_INDEX;
 	public:
 		PooledComponentIterator(
-			PooledComponentAllocator& meshAllocator, PoolIterator poolIt, index_t index)
-			: m_allocator(meshAllocator), m_poolIt(poolIt), m_index(index) {
-			increment();
+			PooledComponentAllocator& allocator, PoolIterator poolIt, index_t index)
+			: m_allocator(allocator), m_poolIt(poolIt), m_index(index) {
+			if (m_poolIt) operator++();
 		}
 
 		explicit operator bool() const override { return (bool)m_poolIt; }
-		entity getEntity() override {
+		entity getEntity() const override {
 			auto ptr = operator->();
-			return ptr ? ptr->entityId : entity::invalid();
+			if (ptr) return ptr->entityId;
+			else return entity::invalid();
 		}
 
 		PooledComponentIterator& operator++() override {
-			assert(m_poolIt);
-			increment();
-			return *this;
-		}
+			if (!m_poolIt) throw "Invalid Call. Iterator object has finished.";
 
-		T* operator->() override {
-			assert(m_poolIt);
-			return m_poolIt->get(m_index);
-		}
-		/*
-		const T* operator->() const override {
-			assert(m_poolIt);
-			return m_poolIt->get(m_index);
-		}*/
-
-		T& operator*() override {
-			assert(m_poolIt);
-			T* ptr = m_poolIt->get(m_index);
-			return *ptr;
-		}
-		/*
-		const T& operator*() const override {
-			assert(m_poolIt);
-			T* ptr = m_poolIt->get(m_index);
-			return *ptr;
-		}*/
-	private:
-		void increment() {
 			while (true) {
 				if (!m_poolIt) {
 					break;
 				}
 				else if (m_index == m_poolIt->m_top) {
+					assert(m_poolIt->m_top != INVALID_INDEX);
 					++m_poolIt;
 					m_index = INVALID_INDEX;
 				}
@@ -531,14 +496,35 @@ public:
 					if (m_poolIt->has(m_index)) break;
 				}
 			}
+			return *this;
+		}
+
+		const T* operator->() const override {
+			if (m_poolIt) return m_poolIt->get(m_index);
+			else return nullptr;
+		}
+		T* operator->() override {
+			return const_cast<T*>(static_cast<const PooledComponentIterator&>(*this).operator->());
+		}
+
+		const T& operator*() const override {
+			const T* ptr = operator->();
+			if (ptr) return *ptr;
+			else throw "PooledComponentIterator could not dereference pointer.";
+		}
+		T& operator*() override {
+			return const_cast<T&>(static_cast<const PooledComponentIterator&>(*this).operator*());
 		}
 	};
 private:
 	using IComponentAllocator<T>::m_allocator;
 	using IComponentAllocator<T>::m_count;
+
+	Pool* m_poolStart = nullptr;
+	Pool* m_poolEnd = nullptr;
 	bool m_running = true;
 public:
-	PooledComponentAllocator(IRootAllocator& a) : IComponentAllocator<T>(a) { }
+	using IComponentAllocator<T>::IComponentAllocator;
 
 	bool reserve(index_t m_numBlocks) {
 		assert(m_running);
@@ -559,31 +545,17 @@ public:
 			(Block*)(base + sHeader + sBuckets)
 		);
 
-		if (m_pStart == nullptr) {
-			m_pStart = pHeader;
-			m_pEnd = pHeader;
+		if (m_poolStart == nullptr) {
+			m_poolStart = pHeader;
+			m_poolEnd = pHeader;
 		}
 		else {
-			m_pEnd->next = pHeader;
-			pHeader->prev = m_pEnd;
-			m_pEnd = pHeader;
+			m_poolEnd->next = pHeader;
+			pHeader->prev = m_poolEnd;
+			m_poolEnd = pHeader;
 		}
 
 		return true;
-	}
-
-	bool allocate(entity handle) override {
-		assert(m_running);
-		if (!m_running) return false;
-		if (handle == entity::invalid()) return false;
-
-		for (auto it = poolBegin(); it; ++it) {
-			if (it->allocate(handle)) {
-				m_count++;
-				return true;
-			}
-		}
-		return false;
 	}
 
 	bool has(entity handle) const override {
@@ -607,6 +579,20 @@ public:
 			if (ptr) return ptr;
 		}
 		return nullptr;
+	}
+
+	bool allocate(entity handle) override {
+		assert(m_running);
+		if (!m_running) return false;
+		if (handle == entity::invalid()) return false;
+
+		for (auto it = poolBegin(); it; ++it) {
+			if (it->allocate(handle)) {
+				m_count++;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	bool free(entity handle) override {
@@ -638,11 +624,8 @@ public:
 		return PooledComponentIterator(*this, poolBegin(), INVALID_INDEX);
 	}
 private:
-	Pool* m_pStart = nullptr;
-	Pool* m_pEnd = nullptr;
-
 	PoolIterator poolBegin() const {
-		return PoolIterator(*this, m_pStart);
+		return PoolIterator(*this, m_poolStart);
 	}
 };
 }

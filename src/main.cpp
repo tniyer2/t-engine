@@ -3,6 +3,7 @@
 #include "core/core.h"
 #include <iostream>
 #include <string>
+#include <exception>
 
 using namespace TEngine;
 using Core::entity;
@@ -15,7 +16,7 @@ const static std::string ERROR_DIVIDER = std::string(60, '-') + "\n";
 
 class Player : public Core::Script {
 private:
-	Core::ComponentPtr<MeshComponent> m_mesh;
+	Core::ComponentHandle<MeshComponent> m_mesh;
 	float m_time = 0;
 	float m_time2 = 0;
 public:
@@ -23,7 +24,8 @@ public:
 
 	void Awake() override {
 		auto& compM = Core::ComponentManager::getInstance();
-		m_mesh = compM.getComponent<MeshComponent>(entity);
+		m_mesh = compM.getComponent<MeshComponent>(entityId);
+		// std::cout << "delta time from player Awake(): " << m_time << "\n";
 	}
 
 	void Update(float deltaTime) override {
@@ -33,7 +35,7 @@ public:
 		// std::cout << "delta time from player: " << deltaTime << "\n";
 		if (m_time > 3.0) {
 			m_time = 0;
-			std::cout << "delta time from player: " << deltaTime << "\n";
+			// std::cout << "delta time from player: " << deltaTime << "\n";
 			// std::cout << "mesh id: " << (unsigned int)m_mesh->mesh << "\n";
 		}
 		if (m_time2 > 10.0) {
@@ -43,20 +45,25 @@ public:
 	}
 };
 
+auto makeTransform() {
+	return create<Transform>(create<entity>());
+}
+
 void userLogic() {
-	entity player = create<entity>();
-	create<MeshComponent>(player);
-	auto playerTransform = create<Transform>(player);
-	Core::addScript<Player>(player);
-	Core::removeScript(player);
+	auto player = makeTransform();
+	Transform::getRoot()->addChild(player);
 
-	entity hand = create<entity>();
-	auto handTransform = create<Transform>(hand);
-	assert(handTransform);
-	playerTransform->addChild(handTransform);
+	auto a = makeTransform();
+	auto b = makeTransform();
+	auto c = makeTransform();
+	auto d = makeTransform();
+	auto e = makeTransform();
 
-	destroy<entity>(hand);
-	destroy<Transform>(player);
+	player->addChild(a);
+	a->addChild(b);
+	player->addChild(c);
+	c->addChild(d);
+	c->addChild(e);
 }
 
 void start() {

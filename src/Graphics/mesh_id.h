@@ -2,7 +2,7 @@
 #ifndef GRAPHICS_MESH_ID
 #define GRAPHICS_MESH_ID
 
-#include "../core/id.h"
+#include "core/id.h"
 
 namespace TEngine::Graphics {
 

@@ -1,7 +1,17 @@
 
 #include "glm_to_string.h"
 
+#include <sstream>
+#include <iomanip>
+#include <ios>
+
 namespace TEngine::Utility {
+
+std::string fts(float a) {
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(2) << a;
+	return ss.str();
+}
 
 std::string to_string(glm::vec4 v) {
 	const static std::string START = "(";
@@ -9,10 +19,10 @@ std::string to_string(glm::vec4 v) {
 	const static std::string SEP = ", ";
 
 	return START +
-		std::to_string(v.x) + SEP +
-		std::to_string(v.y) + SEP +
-		std::to_string(v.z) + SEP +
-		std::to_string(v.w) + END;
+		fts(v.x) + SEP +
+		fts(v.y) + SEP +
+		fts(v.z) + SEP +
+		fts(v.w) + END;
 }
 
 std::string to_string(glm::mat4 m) {

@@ -18,8 +18,8 @@ public:
 
 class IRootAllocator : public IAllocator {
 public:
-	virtual void startUp() { };
-	virtual void shutDown() { };
+	virtual void startUp() { }
+	virtual void shutDown() { }
 
 	virtual void* allocate(size_t) = 0;
 	virtual void free(void*) = 0;

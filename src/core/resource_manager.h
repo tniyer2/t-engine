@@ -2,7 +2,7 @@
 #ifndef CORE_RESOURCE_MANAGER_H
 #define CORE_RESOURCE_MANAGER_H
 
-#include "resource_ptr.h"
+#include "resource_handle.h"
 #include "linear_allocator.h"
 #include "subsystem.h"
 #include <string>
@@ -17,16 +17,14 @@ private:
 public:
 	static std::string typeName() { return "Core::ResourceManager"; }
 
-	ResourceManager() :
-		SubSystem<ResourceManager>(),
-		m_allocator(RootAllocator::getInstance()) { };
+	ResourceManager() : m_allocator(RootAllocator::getInstance()) { }
 
-	void startUp();
-	void shutDown();
+	void startUp() override;
+	void shutDown() override;
 
 	template<class T>
-	ResourcePtr<T> load(std::string filePath) {
-		return ResourcePtr<T>();
+	ResourceHandle<T> load(std::string filePath) {
+		return ResourceHandle<T>::invalid();
 	}
 };
 }

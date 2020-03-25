@@ -6,8 +6,8 @@ namespace TEngine::Utility {
 
 class Timer {
 private:
-	constexpr static float FRAME_RATE = 1.0 / 60.0;
-	constexpr static float MAX_FRAME_RATE = 0.25;
+	constexpr static float FRAME_RATE = 1.0f / 60.0f;
+	constexpr static float MAX_FRAME_RATE = 0.25f;
 
 	float m_frameRate = 0;
 	float m_maxFrameRate = 0;

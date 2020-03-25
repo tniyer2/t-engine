@@ -2,14 +2,13 @@
 #ifndef CORE_COMPONENT_MANAGER_H
 #define CORE_COMPONENT_MANAGER_H
 
-#include "component_iterator.h"
 #include "component_array.h"
-#include "component_ptr.h"
+#include "component_handle.h"
 #include "entity.h"
 #include "subsystem.h"
 #include <atomic>
 #include <vector>
-#include <iostream>
+#include <string>
 #include <cassert>
 
 namespace TEngine::Core {
@@ -17,7 +16,7 @@ namespace TEngine::Core {
 class ComponentManager : public SubSystem<ComponentManager> {
 private:
 	inline static std::atomic_int typeIdCounter = std::atomic_int(1);
-	std::vector<TU_IComponentArray*> m_arrays;
+	std::vector<UntypedComponentArray*> m_arrays;
 public:
 	static std::string typeName() { return "Core::ComponentManager"; }
 
@@ -25,9 +24,13 @@ public:
 
 	template<class T>
 	IComponentArray<T>& getComponentArray() const {
+		checkRunning();
+
 		int counter = typeIdCounter;
 		int id = getTypeId<T>();
-		assert(counter == typeIdCounter);
+		if (counter != typeIdCounter) {
+			throw ("Invalid Call. ComponentArray is not registered for type " + getTypeName<T>());
+		}
 
 		auto ptr = dynamic_cast<IComponentArray<T>*>(m_arrays[(size_t)id - 1]);
 		assert(ptr);
@@ -35,15 +38,15 @@ public:
 	}
 
 	template<class T>
-	bool hasComponent(entity e) const {
+	bool hasComponent(entity id) const {
 		checkRunning();
-		return getComponentArray<T>().hasComponent(e);
+		return getComponentArray<T>().hasComponent(id);
 	}
 
 	template<class T>
-	ComponentPtr<T> getComponent(entity e) const {
+	ComponentHandle<T> getComponent(entity id) const {
 		checkRunning();
-		return getComponentArray<T>().getComponent(e);
+		return getComponentArray<T>().getComponent(id);
 	}
 
 	template<class T>
@@ -57,35 +60,35 @@ public:
 		checkRunning();
 
 		int id = getTypeId<T>();
-		bool newId = id == ComponentManager::typeIdCounter - 1;
-		assert(newId);
-		if (!newId) return;
+		if (id != ComponentManager::typeIdCounter - 1) {
+			throw ("Invalid Call. ComponentArray is already registered for type " + getTypeName<T>());
+		}
 
 		m_arrays.push_back(&arr);
 	}
 
 	template<class T>
-	ComponentPtr<T> addComponent(entity e) {
+	ComponentHandle<T> addComponent(entity id) {
 		checkRunning();
-		return getComponentArray<T>().addComponent(e);
+		return getComponentArray<T>().addComponent(id);
 	}
 
 	template<class T>
-	bool removeComponent(entity e) {
+	void removeComponent(entity id) {
 		checkRunning();
-		return getComponentArray<T>().removeComponent(e);
+		getComponentArray<T>().removeComponent(id);
 	}
 
 	template<class T>
-	bool removeIfComponent(entity e) {
+	bool removeIfComponent(entity id) {
 		checkRunning();
-		return getComponentArray<T>().removeIfComponent(e);
+		return getComponentArray<T>().removeIfComponent(id);
 	}
 
-	void removeComponents(entity e) {
+	void removeComponents(entity id) {
 		checkRunning();
 		for (auto it = m_arrays.begin(); it != m_arrays.end(); ++it) {
-			(*it)->removeIfComponent(e);
+			(*it)->removeIfComponent(id);
 		}
 	}
 private:
@@ -93,6 +96,11 @@ private:
 	static int getTypeId() {
 		static const int id = typeIdCounter++;
 		return id;
+	}
+
+	template<class T>
+	constexpr static std::string getTypeName() {
+		return std::string(typeid(T).name());
 	}
 };
 }

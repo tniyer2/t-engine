@@ -9,7 +9,12 @@
 namespace TEngine::Core {
 
 template<class T>
-ComponentPtr<T> create(entity id) {
+ComponentHandle<T> get(entity id) {
+	return ComponentManager::getInstance().getComponent<T>(id);
+}
+
+template<class T>
+ComponentHandle<T> create(entity id) {
 	return ComponentManager::getInstance().addComponent<T>(id);
 }
 

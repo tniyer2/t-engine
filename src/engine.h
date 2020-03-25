@@ -10,6 +10,7 @@
 #include "core/resource_manager.h"
 #include "core/subsystem.h"
 #include "utility/timer.h"
+#include <string>
 
 namespace TEngine::Core {
 
@@ -22,15 +23,12 @@ public:
 	EntityManager gEntityManager;
 	Graphics::Renderer gRenderer;
 private:
-	float m_deltaTime = 0;
 	Utility::Timer m_timer;
 public:
 	static std::string typeName() { return "Core::Engine"; }
 
-	Engine() : SubSystem<Engine>() { }
-
-	void startUp();
-	void shutDown();
+	void startUp() override;
+	void shutDown() override;
 	void runGameLoop();
 };
 }

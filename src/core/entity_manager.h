@@ -2,15 +2,16 @@
 #ifndef CORE_ENTITY_MANAGER_H
 #define CORE_ENTITY_MANAGER_H
 
-#include "entity.h"
 #include "subsystem.h"
+#include "entity.h"
+#include <atomic>
 #include <map>
 
 namespace TEngine::Core {
 
 class EntityManager : public SubSystem<EntityManager> {
 private:
-	inline static unsigned int entityIdCounter = 1;
+	inline static std::atomic_int entityIdCounter = std::atomic_int(1);
 	std::map<entity, bool> m_toBeDestroyed;
 public:
 	static std::string typeName() { return "Core::EntityManager"; }

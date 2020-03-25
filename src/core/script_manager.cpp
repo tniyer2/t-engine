@@ -6,10 +6,10 @@ namespace TEngine::Core {
 void ScriptManager::shutDown() {
 	SubSystem<ScriptManager>::shutDown();
 
-	for (auto it = m_scripts.begin(); it != m_scripts.end(); ++it) {
+	for (auto it = m_allScripts.begin(); it != m_allScripts.end(); ++it) {
 		delete it->second;
 	}
-	m_scripts.clear();
+	m_allScripts.clear();
 	m_newScripts.clear();
 }
 
@@ -19,41 +19,49 @@ void ScriptManager::update(float deltaTime) {
 	for (auto it = m_newScripts.begin(); it != m_newScripts.end(); ++it) {
 		it->second->Awake();
 	}
-	m_newScripts.clear();
 
-	for (auto it = m_scripts.begin(); it != m_scripts.end(); ++it) {
+	for (auto it = m_allScripts.begin(); it != m_allScripts.end(); ++it) {
+		if (m_newScripts.find(it->first) != m_newScripts.end()) continue;
 		it->second->Update(deltaTime);
+	}
+
+	m_newScripts.clear();
+}
+
+bool ScriptManager::hasScript(entity id) const {
+	checkRunning();
+	return m_allScripts.find(id) != m_allScripts.end();
+}
+
+Script* ScriptManager::getScript(entity id) const {
+	checkRunning();
+	auto it = m_allScripts.find(id);
+	if (it != m_allScripts.end()) return it->second;
+	else return nullptr;
+}
+
+void ScriptManager::removeScript(entity id) {
+	checkRunning();
+	_removeScript(id);
+}
+
+bool ScriptManager::removeIfScript(entity id) {
+	checkRunning();
+	if (hasScript(id)) {
+		_removeScript(id);
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 
-bool ScriptManager::hasScript(entity e) {
-	checkRunning();
-	return m_scripts.find(e) != m_scripts.end();
-}
+bool ScriptManager::_removeScript(entity id) {
+	auto allIt = m_allScripts.find(id);
+	if (allIt == m_allScripts.end()) return false;
+	m_allScripts.erase(allIt);
 
-Script* ScriptManager::getScript(entity e) {
-	checkRunning();
-	auto it = m_scripts.find(e);
-	return it != m_scripts.end() ? it->second : nullptr;
-}
-
-void ScriptManager::removeScript(entity e) {
-	checkRunning();
-	bool removed = _removeScript(e);
-	assert(removed);
-}
-
-bool ScriptManager::removeIfScript(entity e) {
-	checkRunning();
-	return _removeScript(e);
-}
-
-bool ScriptManager::_removeScript(entity e) {
-	auto scriptIt = m_scripts.find(e);
-	if (scriptIt == m_scripts.end()) return false;
-	m_scripts.erase(scriptIt);
-
-	auto newIt = m_newScripts.find(e);
+	auto newIt = m_newScripts.find(id);
 	if (newIt != m_newScripts.end()) m_newScripts.erase(newIt);
 	return true;
 }

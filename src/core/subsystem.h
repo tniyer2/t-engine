@@ -3,50 +3,50 @@
 #define CORE_SUBSYSTEM_H
 
 #include "../utility/boolean.h"
-#include <cassert>
 #include <stdexcept>
-#include <string>
 
 namespace TEngine::Core {
 
-template<class T>
+template<class Derived>
 class SubSystem {
 private:
-	inline static T* s_instance = nullptr;
+	inline static Derived* s_instance = nullptr;
 	inline static bool s_running = false;
 public:
-	static std::string typeName() { return "[Name Not Found]"; }
 	static bool isRunning() { return s_running; }
 
-	static T& getInstance() {
+	static Derived& getInstance() {
 		if (!s_instance) {
-			throw std::out_of_range("Instance of subsytem " + T::typeName() + " has not been created.");
+			throw std::out_of_range("Invalid Call. No instance of subsystem " + Derived::typeName());
 		}
 		return *s_instance;
 	}
 
 	SubSystem() {
 		if (s_instance) {
-			throw (T::typeName() + " cannot be constructed. Instance already exists.");
+			throw (Derived::typeName() + " cannot be constructed. Instance already exists.");
 		}
-		s_instance = (T*)this;
+		s_instance = (Derived*)(this);
 	}
+	virtual ~SubSystem() { }
+
 	SubSystem(const SubSystem&) = delete;
 	void operator=(const SubSystem&) = delete;
 
-	void checkRunning() const {
-		if (!T::s_running) {
-			throw ("Invalid state. Cannot access subsystem " + T::typeName() + ".");
-		}
-	}
-	void startUp() {
+	virtual void startUp() {
 		if (!Utility::toggle<true>(s_running)) {
-			throw ("Invalid state. Cannot start subsytem " + T::typeName() + ".");
+			throw ("Invalid State. Cannot start subsytem " + Derived::typeName());
 		}
 	}
-	void shutDown() {
+	virtual void shutDown() {
 		if (!Utility::toggle<false>(s_running)) {
-			throw ("Invalid state. Cannot shut down subsytem " + T::typeName() + ".");
+			throw ("Invalid State. Cannot shut down subsytem " + Derived::typeName());
+		}
+	}
+protected:
+	void checkRunning() const {
+		if (!s_running) {
+			throw ("Invalid Call. Subsystem " + Derived::typeName() + " is not running.");
 		}
 	}
 };

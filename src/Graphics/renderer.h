@@ -2,29 +2,23 @@
 #ifndef GRAPHICS_RENDERER_H
 #define GRAPHICS_RENDERER_H
 
-#include "../core/pooled_component_allocator.h"
-#include "../core/pooled_component_array.h"
-#include "../core/subsystem.h"
-#include "transform_component.h"
 #include "transform_component_array.h"
+#include "transform.h"
 #include "mesh_component.h"
-#include "mesh.h"
-#include "mesh_id.h"
 #include "window.h"
-#include <vector>
+#include "core/pooled_component_array.h"
+#include "core/pooled_component_allocator.h"
+#include "core/subsystem.h"
+#include <string>
 
 namespace TEngine::Graphics {
 
 class Renderer : public Core::SubSystem<Renderer> {
-	using MeshPool = Core::PooledComponentAllocator<MeshComponent>;
-	using MeshArray = Core::PooledComponentArray<MeshComponent>;
-	using TransformPool = Core::PooledComponentAllocator<Transform>;
-
 	struct RendererData {
 		Window window;
-		MeshPool meshAllocator;
-		MeshArray meshArray;
-		TransformPool transformAllocator;
+		Core::PooledComponentAllocator<MeshComponent> meshAllocator;
+		Core::PooledComponentArray<MeshComponent> meshArray;
+		Core::PooledComponentAllocator<Transform> transformAllocator;
 		TransformComponentArray transformArray;
 
 		RendererData(Core::IRootAllocator& a)
@@ -33,17 +27,20 @@ class Renderer : public Core::SubSystem<Renderer> {
 	};
 private:
 	RendererData* m_data = nullptr;
-	ComponentPtr<Transform> m_root;
+	float m_time = -1;
 public:
 	static std::string typeName() { return "Graphics::Renderer"; }
+
 	using SubSystem<Renderer>::SubSystem;
 
-	void startUp();
-	void shutDown();
-	void update(float);
+	Window& getWindow() {
+		checkRunning();
+		return m_data->window;
+	}
 
-	Window& getWindow() { checkRunning(); return m_data->window; }
-	MeshArray& getMeshArray() { checkRunning(); return m_data->meshArray; }
+	void startUp() override;
+	void shutDown() override;
+	void update(float);
 };
 }
 #endif

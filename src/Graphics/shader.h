@@ -2,7 +2,7 @@
 #ifndef GRAPHICS_SHADER_H
 #define GRAPHICS_SHADER_H
 
-#include "../core/id.h"
+#include "core/id.h"
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>

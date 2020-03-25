@@ -1,31 +1,33 @@
 
-#ifndef COMPONENT_ARRAY_H
-#define COMPONENT_ARRAY_H
+#ifndef CORE_COMPONENT_ARRAY_H
+#define CORE_COMPONENT_ARRAY_H
 
 #include "component_iterator.h"
-#include "component_ptr.h"
+#include "component_handle.h"
 #include "entity.h"
 #include <memory>
 
 namespace TEngine::Core {
 
-// Type Unsafe base class of IComponentArray
-class TU_IComponentArray {
+class UntypedComponentArray {
 public:
-	virtual ~TU_IComponentArray() { };
+	virtual ~UntypedComponentArray() { };
+
 	virtual size_t getCount() const = 0;
 	virtual bool hasComponent(entity) const = 0;
-	virtual std::unique_ptr<TU_IComponentIterator> TUbegin() const = 0;
-	virtual bool removeComponent(entity) = 0;
+
+	virtual std::unique_ptr<UntypedComponentIterator> untypedBegin() = 0;
+	virtual void removeComponent(entity) = 0;
 	virtual bool removeIfComponent(entity) = 0;
 };
 
 template<class T>
-class IComponentArray : public TU_IComponentArray {
+class IComponentArray : public UntypedComponentArray {
 public:
-	virtual ComponentPtr<T> getComponent(entity) const = 0;
-	virtual std::unique_ptr<IComponentIterator<T>> begin() const = 0;
-	virtual ComponentPtr<T> addComponent(entity) = 0;
+	virtual ComponentHandle<T> getComponent(entity) const = 0;
+
+	virtual std::unique_ptr<IComponentIterator<T>> begin() = 0;
+	virtual ComponentHandle<T> addComponent(entity) = 0;
 };
 }
 #endif

@@ -16,10 +16,11 @@ public:
 
 	size_t getCount() const { return m_count; }
 
-	virtual bool allocate(entity) = 0;
-	virtual bool free(entity) = 0;
 	virtual bool has(entity) const = 0;
 	virtual T* get(entity) const = 0;
+
+	virtual bool allocate(entity) = 0;
+	virtual bool free(entity) = 0;
 };
 }
 #endif

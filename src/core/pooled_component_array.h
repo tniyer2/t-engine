@@ -4,7 +4,7 @@
 
 #include "pooled_component_allocator.h"
 #include "component_array.h"
-#include "component_ptr.h"
+#include "component_handle.h"
 #include "entity.h"
 
 namespace TEngine::Core {
@@ -21,44 +21,53 @@ public:
 		return m_allocator.getCount();
 	}
 
-	bool hasComponent(entity e) const override {
-		return m_allocator.has(e);
+	bool hasComponent(entity id) const override {
+		return m_allocator.has(id);
 	}
 
-	ComponentPtr<T> getComponent(entity e) const override {
-		return ComponentPtr<T>(m_allocator, e);
+	ComponentHandle<T> getComponent(entity id) const override {
+		return ComponentHandle<T>(m_allocator, id);
 	}
 
-	std::unique_ptr<IComponentIterator<T>> begin() const override {
+	std::unique_ptr<UntypedComponentIterator> untypedBegin() override {
+		return std::unique_ptr<UntypedComponentIterator>(_begin());
+	}
+
+	std::unique_ptr<IComponentIterator<T>> begin() override {
 		return std::unique_ptr<IComponentIterator<T>>(_begin());
 	}
 
-	std::unique_ptr<TU_IComponentIterator> TUbegin() const override {
-		return std::unique_ptr<TU_IComponentIterator>(_begin());
+	ComponentHandle<T> addComponent(entity id) override {
+		if (m_allocator.allocate(id)) {
+			return ComponentHandle<T>(m_allocator, id);
+		}
+		else {
+			return ComponentHandle<T>::invalid();
+		}
 	}
 
-	ComponentPtr<T> addComponent(entity e) override {
-		bool allocated = m_allocator.allocate(e);
-		assert(allocated);
-		return ComponentPtr<T>(m_allocator, e);
+	void removeComponent(entity id) override {
+		_removeComponent(id);
 	}
 
-	bool removeComponent(entity e) override {
-		return _removeComponent(e);
-	}
-
-	bool removeIfComponent(entity e) override {
-		return m_allocator.has(e) ? _removeComponent(e) : true;
+	bool removeIfComponent(entity id) override {
+		if (m_allocator.has(id)) {
+			_removeComponent(id);
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 protected:
-	virtual bool _removeComponent(entity e) {
-		bool removed = m_allocator.free(e);
-		assert(removed);
-		return removed;
+	virtual void _removeComponent(entity id) {
+		if (!m_allocator.free(id)) {
+			throw "Could not remove component.";
+		}
 	}
 private:
-	IComponentIterator<T>* _begin() const  {
-		return new typename PooledComponentAllocator<T>::PooledComponentIterator(m_allocator.begin());
+	IComponentIterator<T>* _begin() const {
+		return new Iterator(m_allocator.begin());
 	}
 };
 }

@@ -1,39 +1,42 @@
 
 #include "linear_allocator.h"
-#include "../utility/boolean.h"
 
-#include <stdlib.h>
+#include "../utility/boolean.h"
 #include <cstring>
 #include <cassert>
 
 namespace TEngine::Core {
 
-bool LinearAllocator::reserve(size_t size) {
-	if (!Utility::toggle<true>(m_running)) return false;
+void LinearAllocator::reserve(size_t size) {
+	if (!Utility::toggle<true>(m_running)) {
+		throw "Invalid Call. LinearAllocator is already running.";
+	}
 
 	size = align(size);
-	void* ptr = malloc(size);
-	if (!ptr) return false;
+	void* ptr = m_allocator.allocate(size);
+	if (!ptr) {
+		throw "Could not allocate memory.";
+	}
 
 	m_basePtr = ptr;
 	m_topPtr = ptr;
 	m_capacity = size;
-	return true;
 }
 
-void LinearAllocator::shutDown() {
-	if (!Utility::toggle<false>(m_running)) return;
-
+void LinearAllocator::freeAll() {
+	if (!Utility::toggle<false>(m_running)) {
+		throw "Invalid Call. LinearAllocator is not running.";
+	}
 	m_allocator.free(m_basePtr);
 }
 
 void* LinearAllocator::allocate(size_t size) {
-	assert(m_running);
-	if (!m_running) return nullptr;
+	if (!m_running) {
+		throw "Invalid Call. LinearAllocator is not running.";
+	}
 
 	size = align(size);
-	size_t available = m_capacity - ((size_t)m_topPtr - (size_t)m_basePtr);
-	if (size > available) return nullptr;
+	if (size > getAvailable()) return nullptr;
 
 	void* cur = m_topPtr;
 	m_topPtr = (void*)((size_t)m_topPtr + size);
@@ -41,8 +44,9 @@ void* LinearAllocator::allocate(size_t size) {
 }
 
 void LinearAllocator::clear() {
-	assert(m_running);
-	if (!m_running) return;
+	if (!m_running) {
+		throw "Invalid Call. LinearAllocator is not running.";
+	}
 
 	std::memset(m_basePtr, 0, m_capacity);
 	m_topPtr = m_basePtr;

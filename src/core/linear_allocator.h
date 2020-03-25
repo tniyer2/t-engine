@@ -13,13 +13,17 @@ private:
 	size_t m_capacity = 0;
 	bool m_running = false;
 public:
-	LinearAllocator(IRootAllocator& a) : IDerivedAllocator(a) { }
+	using IDerivedAllocator::IDerivedAllocator;
 
-	bool reserve(size_t size);
-	void shutDown();
+	bool isRunning() const { return m_running; }
+	size_t getUsed() const { return ((size_t)m_topPtr - (size_t)m_basePtr); }
+	size_t getAvailable() const { return m_capacity - getUsed(); }
+
+	void reserve(size_t size);
+	void freeAll(); // frees all allocated memory
 
 	void* allocate(size_t size);
-	void clear();
+	void clear(); // resets pointer to base
 };
 }
 #endif

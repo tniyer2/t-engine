@@ -29,11 +29,12 @@ void Engine::runGameLoop() {
 	checkRunning();
 
 	while (!gRenderer.getWindow().shouldClose()) {
-		if ((m_deltaTime = m_timer.step((float)glfwGetTime())) == 0) continue;
+		float deltaTime = m_timer.step((float)glfwGetTime());
+		if (deltaTime == 0) continue;
 
-		gScriptManager.update(m_deltaTime);
-		gEntityManager.update(m_deltaTime);
-		gRenderer.update(m_deltaTime);
+		gScriptManager.update(deltaTime);
+		gEntityManager.update(deltaTime);
+		gRenderer.update(deltaTime);
 	}
 }
 }

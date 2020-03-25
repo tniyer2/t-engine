@@ -14,69 +14,64 @@ namespace TEngine::Core {
 
 template<class ...Ts>
 struct ComponentView {
-	using Arrays = std::array<TU_IComponentArray*, sizeof...(Ts)>;
+	using Arrays = std::array<UntypedComponentArray*, sizeof...(Ts)>;
 	using TypedArrays = std::tuple<IComponentArray<Ts>*...>;
 private:
-	inline static unsigned int typeIdCounter = 0;
-
 	Arrays m_arrays;
 	TypedArrays m_typedArrays;
-	TU_IComponentIterator* m_it = nullptr;
-	const unsigned int m_shortest_index = 0;
-
-	template<class T>
-	static unsigned int getTypeId() {
-		const static unsigned int id = typeIdCounter++;
-		return id;
-	}
-
-	static unsigned int findShortest(Arrays& arrays) {
-		size_t shortest_count = std::numeric_limits<size_t>::max();
-		unsigned int shortest_index = 0;
-		for (unsigned int i = 0; i < arrays.size(); ++i) {
-			size_t count = arrays[i]->getCount();
-			if (count < shortest_count) {
-				shortest_count = count;
-				shortest_index = i;
-			}
-		}
-		return shortest_index;
-	}
-
-	template<class T>
-	ComponentPtr<T> getComponentPtr(entity id, bool& allPresent) {
-		if (allPresent) {
-			auto c = std::get<IComponentArray<T>*>(m_typedArrays)->getComponent(id);
-			allPresent = (bool)c;
-			return allPresent ? c : ComponentPtr<T>();
-		}
-		else {
-			return ComponentPtr<T>();
-		}
-	}
+	UntypedComponentIterator* m_it = nullptr;
+	const unsigned int m_shortestIndex = 0;
 
 	ComponentView(ComponentManager& m)
 		: m_arrays({ &m.getComponentArray<Ts>()... }),
 		m_typedArrays({ &m.getComponentArray<Ts>()... }),
-		m_shortest_index(findShortest(m_arrays)) {
+		m_shortestIndex(findShortest(m_arrays)) {
 
-		(getTypeId<Ts>(), ...);
-		m_it = m_arrays[m_shortest_index]->TUbegin().release();
+		m_it = m_arrays[m_shortestIndex]->untypedBegin().release();
 	}
 public:
 	ComponentView() : ComponentView(ComponentManager::getInstance()) { }
 	~ComponentView() { delete m_it; }
 
-	explicit operator bool() const { return m_it->operator bool(); }
+	explicit operator bool() const { return (bool)*m_it; }
 
-	std::optional<std::tuple<ComponentPtr<Ts>...>> next() {
+	std::optional<std::tuple<ComponentHandle<Ts>...>> next() {
 		entity id = m_it->getEntity();
 		bool allPresent = true;
-		std::tuple<ComponentPtr<Ts>...> components =
-			{ getComponentPtr<Ts>(id, allPresent)... };
+
+		std::tuple<ComponentHandle<Ts>...> components =
+			{ getHandleIfAllPresent<Ts>(id, allPresent)... };
 
 		m_it->operator++();
-		if (allPresent) return components; else return {};
+		if (allPresent) return components;
+		else return {};
+	}
+private:
+	static unsigned int findShortest(Arrays& arrays) {
+		size_t shortestCount = std::numeric_limits<size_t>::max();
+		unsigned int shortestIndex = 0;
+
+		for (unsigned int i = 0; i < arrays.size(); ++i) {
+			size_t count = arrays[i]->getCount();
+			if (count < shortestCount) {
+				shortestCount = count;
+				shortestIndex = i;
+			}
+		}
+
+		return shortestIndex;
+	}
+
+	template<class T>
+	ComponentHandle<T> getHandleIfAllPresent(entity id, bool& allPresent) {
+		if (allPresent) {
+			auto handle = std::get<IComponentArray<T>*>(m_typedArrays)->getComponent(id);
+			allPresent = (bool)handle;
+			return handle;
+		}
+		else {
+			return ComponentHandle<T>::invalid();
+		}
 	}
 };
 }
