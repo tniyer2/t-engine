@@ -1,9 +1,9 @@
 
 #include "shader.h";
 
-namespace TEngine { namespace Graphics {
+namespace TEngine::Graphics {
 
-static constexpr const char* DIVIDER = " -- --------------------------------------------------- -- ";
+static std::string DIVIDER = std::string(50, '-');
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
 	std::string vertexCode;
@@ -49,13 +49,13 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 	const char* fShaderCode = fragmentCode.c_str();
 	unsigned int vertex, fragment;
 
-	// Vertex shader
+	// Create and Compile Vertex Shader
 	vertex = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex, 1, &vShaderCode, NULL);
 	glCompileShader(vertex);
 	checkCompileErrors(vertex, "VERTEX");
 
-	// Fragment Shader
+	// Create and Compile Fragment Shader
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragment, 1, &fShaderCode, NULL);
 	glCompileShader(fragment);
@@ -63,7 +63,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 
 	// Compile Geometry Shader
 	unsigned int geometry;
-	if (geometryPath != nullptr) {
+	if (geometryPath) {
 		const char* gShaderCode = geometryCode.c_str();
 		geometry = glCreateShader(GL_GEOMETRY_SHADER);
 		glShaderSource(geometry, 1, &gShaderCode, NULL);
@@ -71,21 +71,21 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 		checkCompileErrors(geometry, "GEOMETRY");
 	}
 
-	// Shader Program
-	Id = shaderId(glCreateProgram());
-	glAttachShader((unsigned int)Id, vertex);
-	glAttachShader((unsigned int)Id, fragment);
-	if (geometryPath != nullptr) {
-		glAttachShader((unsigned int)Id, geometry);
-	}
-	glLinkProgram((unsigned int)Id);
-	checkCompileErrors((unsigned int)Id, "PROGRAM");
+	// Create Shader Program
+	this->shaderId = shader(glCreateProgram());
+	auto id = (unsigned int)shaderId;
+
+	glAttachShader(id, vertex);
+	glAttachShader(id, fragment);
+	if (geometryPath) glAttachShader(id, geometry);
+
+	// Compile Shader Program
+	glLinkProgram(id);
+	checkCompileErrors(id, "PROGRAM");
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
-	if (geometryPath != nullptr) {
-		glDeleteShader(geometry);
-	}
+	if (geometryPath) glDeleteShader(geometry);
 }
 
 void Shader::checkCompileErrors(GLuint shader, std::string type) {
@@ -108,4 +108,4 @@ void Shader::checkCompileErrors(GLuint shader, std::string type) {
 		}
 	}
 }
-}}
+}

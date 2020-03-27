@@ -2,9 +2,9 @@
 #ifndef GRAPHICS_TRANSFORM_COMPONENT_H
 #define GRAPHICS_TRANSFORM_COMPONENT_H
 
+#include "core/component.h"
 #include "core/component_handle.h"
 #include "core/entity.h"
-#include "core/read_only_property.h"
 #include <glm/glm.hpp>
 
 namespace TEngine::Graphics {
@@ -12,7 +12,7 @@ namespace TEngine::Graphics {
 using Core::ComponentHandle;
 using Core::entity;
 
-class Transform {
+class Transform : public Core::TComponent<Transform> {
 	using index_t = unsigned int;
 
 	friend class TransformComponentArray;
@@ -22,9 +22,7 @@ private:
 
 	glm::mat4 m_matrix;
 	glm::mat4 m_computed;
-public:
-	Core::ReadOnlyProperty<entity> entityId;
-private:
+
 	entity m_parent;
 	entity m_prevSibling;
 	entity m_nextSibling;
@@ -36,8 +34,9 @@ private:
 public:
 	static ComponentHandle<Transform> getRoot() { return m_rootTransform; }
 
-	Transform() { }
-	Transform(entity id) : entityId(id) { }
+	using TComponent<Transform>::TComponent;
+
+	entity instantiate(entity) override;
 
 	glm::mat4 getLocalMatrix() const { return m_matrix; }
 	glm::mat4 getWorldMatrix() const { return m_computed; }

@@ -27,7 +27,6 @@ class Renderer : public Core::SubSystem<Renderer> {
 	};
 private:
 	RendererData* m_data = nullptr;
-	float m_time = -1;
 public:
 	static std::string typeName() { return "Graphics::Renderer"; }
 

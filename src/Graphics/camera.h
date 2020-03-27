@@ -11,10 +11,6 @@
 
 namespace TEngine { namespace Graphics {
 
-using glm::mat4;
-using glm::vec3;
-using glm::vec4;
-
 class Window;
 
 enum class CameraMovement {
@@ -31,19 +27,17 @@ public:
 	float mouseSensitivity = 0.05f;
 	float zoom = 45.0f;
 
-	Camera();
-
-	mat4 getPerspectiveMatrix();
-	mat4 getViewMatrix() { return m_matrix; }
-	vec4 getRight() { return normalize(m_matrix[0]); }
-	vec4 getUp() { return normalize(m_matrix[1]); }
-	vec4 getForward() { return normalize(m_matrix[2]); }
+	glm::mat4 getPerspectiveMatrix();
+	glm::mat4 getViewMatrix() { return m_matrix; }
+	glm::vec4 getRight() { return glm::normalize(m_matrix[0]); }
+	glm::vec4 getUp() { return glm::normalize(m_matrix[1]); }
+	glm::vec4 getForward() { return glm::normalize(m_matrix[2]); }
 
 	void processKeyboard(CameraMovement, float);
 	void processMouseMovement(float, float, GLboolean=true);
 	void processMouseScroll(float);
 private:
-	mat4 m_matrix;
+	glm::mat4 m_matrix;
 	float m_lastMouseX = -1;
 	float m_lastMouseY = -1;
 };

@@ -40,7 +40,7 @@ void Mesh::draw(const Shader& shader) {
 		}
 
 		// set sampler
-		glUniform1i(glGetUniformLocation((unsigned int)shader.Id, (name + number).c_str()), i);
+		glUniform1i(glGetUniformLocation((unsigned int)shader.shaderId, (name + number).c_str()), i);
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 

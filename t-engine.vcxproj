@@ -132,6 +132,7 @@
     <ClCompile Include="src\core\core.cpp" />
     <ClCompile Include="src\core\entity_manager.cpp" />
     <ClCompile Include="src\core\memory.cpp" />
+    <ClCompile Include="src\core\prefab.cpp" />
     <ClCompile Include="src\core\resource_manager.cpp" />
     <ClCompile Include="src\core\script_manager.cpp" />
     <ClCompile Include="src\core\linear_allocator.cpp" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="read_only_property.h" />
     <ClInclude Include="include\stb_image.h" />
+    <ClInclude Include="src\core\component.h" />
     <ClInclude Include="src\core\component_iterator.h" />
     <ClInclude Include="src\core\component_allocator.h" />
     <ClInclude Include="src\core\component_array.h" />
@@ -168,6 +170,7 @@
     <ClInclude Include="src\core\memory.h" />
     <ClInclude Include="src\core\pooled_component_allocator.h" />
     <ClInclude Include="src\core\pooled_component_array.h" />
+    <ClInclude Include="src\core\prefab.h" />
     <ClInclude Include="src\core\resource_handle.h" />
     <ClInclude Include="src\core\resource_manager.h" />
     <ClInclude Include="src\core\script.h" />
@@ -183,6 +186,7 @@
     <ClInclude Include="src\graphics\renderer.h" />
     <ClInclude Include="src\Graphics\shader.h" />
     <ClInclude Include="src\graphics\depth_first_transform_iterator.h" />
+    <ClInclude Include="src\graphics\shader_id.h" />
     <ClInclude Include="src\graphics\transform.h" />
     <ClInclude Include="src\graphics\transform_component_array.h" />
     <ClInclude Include="src\Graphics\window.h" />

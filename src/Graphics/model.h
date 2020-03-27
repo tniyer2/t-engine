@@ -34,7 +34,7 @@ public:
 	std::string directory;
 	bool gammaCorrection;
 
-	Model(std::string const&, bool=false);
+	Model(const std::string&, bool=false);
 	void draw(Shader shader);
 
 private:

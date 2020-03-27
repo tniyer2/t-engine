@@ -7,6 +7,18 @@
 
 namespace TEngine::Graphics {
 
+entity Transform::instantiate(entity baseId) {
+	auto handle = Transform::_instantiate(baseId);
+
+	handle->m_parent(baseId);
+	handle->m_prevSibling(baseId);
+	handle->m_nextSibling(baseId);
+	handle->m_firstChild(baseId);
+	handle->m_lastChild(baseId);
+
+	return handle->entityId;
+}
+
 void Transform::setLocalMatrix(glm::mat4 matrix) {
 	m_matrix = matrix;
 	m_dirty = true;

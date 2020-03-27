@@ -6,7 +6,7 @@
 
 namespace TEngine::Graphics {
 
-struct mesh_tag{};
+struct mesh_tag {};
 using mesh = Core::Id<mesh_tag, unsigned int, 0>;
 }
 #endif

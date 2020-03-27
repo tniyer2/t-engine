@@ -1,6 +1,7 @@
 
 #include "engine.h"
 #include "core/core.h"
+#include "utility/glm_to_string.h"
 #include <iostream>
 #include <string>
 #include <exception>
@@ -64,6 +65,15 @@ void userLogic() {
 	player->addChild(c);
 	c->addChild(d);
 	c->addChild(e);
+
+	/*
+	c->setLocalMatrix({{1, 2, 3, 0}, {3, 2, 1, 0}, {2, 3, 1, 0}, {0, 0, 0, 0}});
+	auto copy = c->instantiate(entity(100));
+	auto t = Core::get<Transform>(copy);
+	std::cout << "id: " << (unsigned int)(entity)t->entityId << "\n";
+	c->setLocalMatrix({});
+	std::cout << "c matrix:\n" << Utility::to_string(c->getLocalMatrix()) << "\n";
+	std::cout << "t matrix:\n" << Utility::to_string(t->getLocalMatrix()) << "\n";*/
 }
 
 void start() {

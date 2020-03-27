@@ -37,15 +37,9 @@ void Renderer::update(float deltaTime) {
 	m_data->window.update(deltaTime);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	m_time += deltaTime;
-	if (m_time >= 0 && m_time < 3.0f) return;
-	else m_time = 0;
-
 	auto it = DepthFirstTransformIterator(Transform::getRoot());
 	for (; it; ++it) {
-		std::cout << "id: " << (unsigned int)(entity)it->entityId << "\n";
-		std::cout << "local matrix:\n" << Utility::to_string(it->getLocalMatrix()) << "\n";
-		std::cout << "world matrix:\n" << Utility::to_string(it->getWorldMatrix()) << "\n";
+
 	}
 }
 }

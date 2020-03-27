@@ -3,18 +3,20 @@
 #define GRAPHICS_MESH_COMPONENT_H
 
 #include "mesh_id.h"
+#include "shader_id.h"
+#include "core/component.h"
 #include "core/entity.h"
-#include "core/read_only_property.h"
 
 namespace TEngine::Graphics {
 
-struct MeshComponent {
-	Core::ReadOnlyProperty<entity> entityId;
+class MeshComponent : public Core::TComponent<MeshComponent> {
+public:
 	mesh meshId;
 	unsigned int VAO = 0;
 
-	MeshComponent() { }
-	MeshComponent(entity id) : entityId(id) { }
+	shader shaderId;
+
+	using TComponent<MeshComponent>::TComponent;
 };
 }
 #endif
