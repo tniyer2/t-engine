@@ -1,6 +1,8 @@
 
 #include "engine.h"
 #include "core/core.h"
+#include "core/prefab.h"
+#include "graphics/model.h"
 #include "utility/glm_to_string.h"
 #include <iostream>
 #include <string>
@@ -17,32 +19,19 @@ const static std::string ERROR_DIVIDER = std::string(60, '-') + "\n";
 
 class Player : public Core::Script {
 private:
-	Core::ComponentHandle<MeshComponent> m_mesh;
+	Core::ComponentHandle<Transform> m_transform;
 	float m_time = 0;
-	float m_time2 = 0;
 public:
 	using Core::Script::Script;
 
 	void Awake() override {
-		auto& compM = Core::ComponentManager::getInstance();
-		m_mesh = compM.getComponent<MeshComponent>(entityId);
-		// std::cout << "delta time from player Awake(): " << m_time << "\n";
+		m_transform = Core::get<Transform>(this->entityId);
 	}
 
 	void Update(float deltaTime) override {
 		m_time += deltaTime;
-		m_time2 += deltaTime;
 
-		// std::cout << "delta time from player: " << deltaTime << "\n";
-		if (m_time > 3.0) {
-			m_time = 0;
-			// std::cout << "delta time from player: " << deltaTime << "\n";
-			// std::cout << "mesh id: " << (unsigned int)m_mesh->mesh << "\n";
-		}
-		if (m_time2 > 10.0) {
-			m_time2 = 0;
-			// Sleep(3000);
-		}
+		
 	}
 };
 
@@ -51,29 +40,20 @@ auto makeTransform() {
 }
 
 void userLogic() {
-	auto player = makeTransform();
-	Transform::getRoot()->addChild(player);
+	Graphics::Shader::defaultShader = Graphics::Shader::loadShader(
+		"shaders/shader.vs", "shaders/shader.fs");
 
-	auto a = makeTransform();
-	auto b = makeTransform();
-	auto c = makeTransform();
-	auto d = makeTransform();
-	auto e = makeTransform();
+	Graphics::Model model("resources/objects/nanosuit/nanosuit.obj");
+	Core::Prefab* prefab = model.loadModel();
 
-	player->addChild(a);
-	a->addChild(b);
-	player->addChild(c);
-	c->addChild(d);
-	c->addChild(e);
+	entity id = prefab->instantiate();
+	auto transform = Core::get<Transform>(id);
+	Core::addScript<Player>(id);
 
-	/*
-	c->setLocalMatrix({{1, 2, 3, 0}, {3, 2, 1, 0}, {2, 3, 1, 0}, {0, 0, 0, 0}});
-	auto copy = c->instantiate(entity(100));
-	auto t = Core::get<Transform>(copy);
-	std::cout << "id: " << (unsigned int)(entity)t->entityId << "\n";
-	c->setLocalMatrix({});
-	std::cout << "c matrix:\n" << Utility::to_string(c->getLocalMatrix()) << "\n";
-	std::cout << "t matrix:\n" << Utility::to_string(t->getLocalMatrix()) << "\n";*/
+	glm::mat4 matrix;
+	matrix = glm::translate(matrix, { 0, -1.75f, 0 });
+	matrix = glm::scale(matrix, { 0.2f, 0.2f, 0.2f });
+	transform->setLocalMatrix(matrix);
 }
 
 void start() {

@@ -1,11 +1,17 @@
 
-#include "shader.h";
+#include "shader.h"
+
+#include "core/resource_manager.h"
+
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 namespace TEngine::Graphics {
 
 static std::string DIVIDER = std::string(50, '-');
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
+Core::ResourceHandle<Shader> Shader::loadShader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
 	std::string vertexCode;
 	std::string fragmentCode;
 	std::string geometryCode;
@@ -72,8 +78,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 	}
 
 	// Create Shader Program
-	this->shaderId = shader(glCreateProgram());
-	auto id = (unsigned int)shaderId;
+	auto id = glCreateProgram();
 
 	glAttachShader(id, vertex);
 	glAttachShader(id, fragment);
@@ -86,6 +91,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geo
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 	if (geometryPath) glDeleteShader(geometry);
+
+	auto handle = Core::ResourceManager::getInstance().allocate<Shader>();
+	handle->id = id;
+	return handle;
 }
 
 void Shader::checkCompileErrors(GLuint shader, std::string type) {

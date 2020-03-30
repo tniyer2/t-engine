@@ -63,9 +63,6 @@
     <ClCompile Include="src\core\memory.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\mesh.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\model.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
@@ -108,6 +105,15 @@
     <ClCompile Include="src\core\prefab.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\dynamic_mesh.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\mesh_component.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\vertex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\utility\boolean.h">
@@ -143,13 +149,7 @@
     <ClInclude Include="src\utility\glm_to_string.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\mesh.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\mesh_component.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\mesh_id.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\model.h">
@@ -224,14 +224,23 @@
     <ClInclude Include="src\core\resource_handle.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\shader_id.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="src\core\component.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\prefab.h">
       <Filter>Header Files\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\dynamic_mesh.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\mesh.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\texture.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\vertex.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,21 +2,21 @@
 #ifndef GRAPHICS_MESH_COMPONENT_H
 #define GRAPHICS_MESH_COMPONENT_H
 
-#include "mesh_id.h"
-#include "shader_id.h"
+#include "mesh.h"
+#include "shader.h"
+#include "core/resource_handle.h"
 #include "core/component.h"
-#include "core/entity.h"
 
 namespace TEngine::Graphics {
 
 class MeshComponent : public Core::TComponent<MeshComponent> {
 public:
-	mesh meshId;
-	unsigned int VAO = 0;
-
-	shader shaderId;
+	Core::ResourceHandle<Mesh> mesh;
+	Core::ResourceHandle<Shader> shader;
 
 	using TComponent<MeshComponent>::TComponent;
+
+	void draw(Core::ResourceHandle<Shader>);
 };
 }
 #endif

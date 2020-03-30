@@ -25,10 +25,6 @@ public:
 	}
 
 	explicit operator bool() const override { return (bool)m_cur; }
-	entity getEntity() const override {
-		if (!m_cur) throw new std::out_of_range(FINISHED);
-		return m_cur->entityId;
-	}
 
 	const Transform* operator->() const override {
 		if (!m_cur) throw new std::out_of_range(FINISHED);

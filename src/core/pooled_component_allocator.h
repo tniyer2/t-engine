@@ -473,11 +473,6 @@ public:
 		}
 
 		explicit operator bool() const override { return (bool)m_poolIt; }
-		entity getEntity() const override {
-			auto ptr = operator->();
-			if (ptr) return ptr->entityId;
-			else return entity::invalid();
-		}
 
 		PooledComponentIterator& operator++() override {
 			if (!m_poolIt) throw "Invalid Call. Iterator object has finished.";

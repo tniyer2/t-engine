@@ -14,7 +14,7 @@ public:
 	ResourceHandle() { }
 	ResourceHandle(T* ptr) : m_ptr(ptr) { }
 
-	explicit operator bool() const { return m_ptr; }
+	explicit operator bool() const { return (bool)m_ptr; }
 
 	const T* operator->() const { return m_ptr; }
 	T* operator->() { return m_ptr; }

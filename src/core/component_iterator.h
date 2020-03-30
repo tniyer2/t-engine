@@ -11,7 +11,6 @@ public:
 	virtual ~UntypedComponentIterator() { }
 
 	virtual explicit operator bool() const = 0;
-	virtual entity getEntity() const = 0;
 
 	virtual UntypedComponentIterator& operator++() = 0;
 };

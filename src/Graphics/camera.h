@@ -2,44 +2,24 @@
 #ifndef GRAPHICS_CAMERA_H
 #define GRAPHICS_CAMERA_H
 
+#include "core/component.h"
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 
-namespace TEngine { namespace Graphics {
+namespace TEngine::Graphics {
 
-class Window;
-
-enum class CameraMovement {
-	FORWARD,
-	BACKWARD,
-	LEFT,
-	RIGHT
-};
-
-class Camera {
+class Camera : public Core::TComponent<Camera> {
 public:
-	Window* window;
-	float movementSpeed = 10.0f;
-	float mouseSensitivity = 0.05f;
-	float zoom = 45.0f;
+	float fieldOfView = 45.0f; // degrees
+	float near = 0.1f;
+	float far = 100.0f;
 
-	glm::mat4 getPerspectiveMatrix();
-	glm::mat4 getViewMatrix() { return m_matrix; }
-	glm::vec4 getRight() { return glm::normalize(m_matrix[0]); }
-	glm::vec4 getUp() { return glm::normalize(m_matrix[1]); }
-	glm::vec4 getForward() { return glm::normalize(m_matrix[2]); }
+	using TComponent<Camera>::TComponent;
 
-	void processKeyboard(CameraMovement, float);
-	void processMouseMovement(float, float, GLboolean=true);
-	void processMouseScroll(float);
-private:
-	glm::mat4 m_matrix;
-	float m_lastMouseX = -1;
-	float m_lastMouseY = -1;
+	glm::mat4 getPerspectiveMatrix(float, float);
 };
-}}
+}
 #endif

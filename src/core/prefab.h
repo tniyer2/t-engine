@@ -2,35 +2,44 @@
 #ifndef CORE_PREFAB_H
 #define CORE_PREFAB_H
 
+#include "graphics/transform.h"
+#include "component_handle.h"
 #include "component.h"
 #include "entity.h"
-#include "id.h"
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace TEngine::Core {
 
-struct prefab_tag {};
-using prefab = Id<prefab_tag, unsigned int, 0>;
+using Graphics::Transform;
 
-class PrefabNode {
-	friend class Prefab;
-private:
-	std::vector<IComponent*> m_components;
+struct PrefabNode {
+	PrefabNode* parent = nullptr;
+	std::vector<PrefabNode*> children;
+	std::vector<IComponent*> components;
+	glm::mat4 matrix;
 
-	PrefabNode(entity id) : entityId(id) { }
+	entity instantiate(ComponentHandle<Transform>);
 
-	entity instantiate(entity);
-public:
-	const entity entityId;
+	~PrefabNode() {
+		for (auto it = children.begin(); it != children.end(); ++it) {
+			delete (*it);
+		}
 
-	void addComponent(IComponent*);
+		for (auto it = components.begin(); it != components.end(); ++it) {
+			delete (*it);
+		}
+	}
 };
 
 class Prefab {
 private:
-	std::vector<PrefabNode*> m_nodes;
+	PrefabNode* m_rootNode;
 public:
-	PrefabNode* createNode();
+	Prefab(PrefabNode* node) : m_rootNode(node) {
+		if (!node) throw "Invalid Argument. Root node must not be null.";
+	}
+	~Prefab() { delete m_rootNode; }
 	entity instantiate();
 };
 }

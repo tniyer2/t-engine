@@ -2,10 +2,9 @@
 #include "renderer.h"
 
 #include "depth_first_transform_iterator.h"
-#include "core/component_view.h"
 #include "core/component_manager.h"
-#include "core/component_handle.h"
 #include "utility/glm_to_string.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace TEngine::Graphics {
 
@@ -15,10 +14,12 @@ void Renderer::startUp() {
 	m_data = new RendererData(Core::RootAllocator::getInstance());
 	m_data->meshAllocator.reserve(100);
 	m_data->transformAllocator.reserve(100);
+	m_data->cameraAllocator.reserve(10);
 
 	auto& compM = Core::ComponentManager::getInstance();
 	compM.registerComponentArray<MeshComponent>(m_data->meshArray);
 	compM.registerComponentArray<Transform>(m_data->transformArray);
+	compM.registerComponentArray<Camera>(m_data->cameraArray);
 
 	m_data->transformArray.setRootTransform();
 
@@ -34,35 +35,45 @@ void Renderer::shutDown() {
 void Renderer::update(float deltaTime) {
 	checkRunning();
 
-	m_data->window.update(deltaTime);
+	Window& window = m_data->window;
+	float width = (float)window.getWidth();
+	float height = (float)window.getHeight();
+	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	auto it = DepthFirstTransformIterator(Transform::getRoot());
 	for (; it; ++it) {
+		entity id = it->entityId;
+		auto mesh = Core::get<MeshComponent>(id);
+		if (!mesh) continue;
 
+		Core::ResourceHandle<Shader> shader;
+		(bool)mesh->shader;
+		if (mesh->shader) {
+			shader = mesh->shader;
+		}
+		else {
+			shader = Shader::defaultShader;
+		}
+
+		// std::cout << "matrix:\n" << Utility::to_string(it->getWorldMatrix()) << "\n";
+		// std::cout << "id: " << mesh->mesh->VAO << "\n";
+
+		shader->use();
+
+		glm::vec3 position = { 0, 0, 3.0f };
+		glm::vec3 front = { 0, 0, -1.0f };
+		glm::vec3 up = { 0, 1.0f, 0 };
+		glm::mat4 view = glm::lookAt(position, position + front, up);
+
+		glm::mat4 projection = m_camera.getPerspectiveMatrix(width, height);
+		shader->setMat4("projection", projection);
+		shader->setMat4("view", view);
+		shader->setMat4("model", it->getWorldMatrix());
+
+		mesh->draw(shader);
 	}
+
+	window.update(deltaTime);
 }
 }
-
-/*
-Window& window = m_data->window;
-Shader& shader = *m_data->shader;
-
-shader.use();
-
-// view/projection transformations
-glm::mat4 projection = window.camera.getPerspectiveMatrix();
-glm::mat4 view = window.camera.getViewMatrix();
-shader.setMat4("projection", projection);
-shader.setMat4("view", view);
-
-glm::mat4 model = glm::mat4(1.0f);
-model = glm::translate(model, glm::vec3(0.0f, -1.1f, 0.0f));
-model = glm::scale(model, glm::vec3(0.15f, 0.15f, 0.15f));
-shader.setMat4("model", model);
-
-vector<MeshComponent> arr = m_data->components;
-for (auto it = arr.begin(); it < arr.end(); ++it) {
-	it->model.draw(shader);
-}
-*/

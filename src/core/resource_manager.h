@@ -23,8 +23,9 @@ public:
 	void shutDown() override;
 
 	template<class T>
-	ResourceHandle<T> load(std::string filePath) {
-		return ResourceHandle<T>::invalid();
+	ResourceHandle<T> allocate() {
+		void* ptr = m_allocator.allocate(sizeof(T));
+		return ResourceHandle<T>((T*)ptr);
 	}
 };
 }

@@ -1,152 +1,153 @@
 
-#include "model.h";
+#include "model.h"
+#include "mesh_component.h"
 
-namespace TEngine { namespace Graphics {
+namespace TEngine::Graphics {
 
-Model::Model(std::string const& path, bool gamma)
-	: gammaCorrection(gamma) {
-	loadModel(path);
+glm::mat4 convertAiMatrix(aiMatrix4x4 matrix) {
+	return {
+		{ matrix.a1, matrix.a2, matrix.a3, matrix.a4 },
+		{ matrix.b1, matrix.b2, matrix.b3, matrix.b4 },
+		{ matrix.c1, matrix.c2, matrix.c3, matrix.c4 },
+		{ matrix.d1, matrix.d2, matrix.d3, matrix.d4 }
+	};
 }
 
-void Model::draw(Shader shader) {
-	for (unsigned int i = 0; i < meshes.size(); i++) {
-		meshes[i].draw(shader);
+glm::vec3 convertAiVec3(aiVector3D vector) {
+	return { vector.x, vector.y, vector.z };
+}
+
+glm::vec2 convertAiVec2(aiVector2D vector) {
+	return { vector.x, vector.y };
+}
+
+TextureType convertAiTextureType(aiTextureType type) {
+	switch (type) {
+		case aiTextureType_DIFFUSE:
+			return TextureType::diffuse;
+		case aiTextureType_SPECULAR:
+			return TextureType::specular;
+		case aiTextureType_HEIGHT:
+			return TextureType::normal;
+		case aiTextureType_AMBIENT:
+			return TextureType::height;
+		default:
+			return TextureType::none;
 	}
 }
 
-void Model::loadModel(std::string const& path) {
+Model::Model(std::string const& path, bool gamma)
+	: m_path(path), m_directory(path.substr(0, path.find_last_of('/'))), m_gammaCorrection(gamma) { }
+
+Core::Prefab* Model::loadModel() {
 	// read file via ASSIMP
 	Assimp::Importer importer;
 	const aiScene* scene =
-		importer.ReadFile(path,
+		importer.ReadFile(m_path,
 			aiProcess_Triangulate |
 			aiProcess_FlipUVs |
 			aiProcess_CalcTangentSpace);
+
 	// check for errors
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
 		std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
-		return;
+		return nullptr;
 	}
-	// retrieve the directory path of the filepath
-	directory = path.substr(0, path.find_last_of('/'));
-	// process ASSIMP's root node recursively
-	processNode(scene->mRootNode, scene);
+
+	Core::PrefabNode* pRootNode = new Core::PrefabNode();
+	Core::Prefab* prefab = new Core::Prefab(pRootNode);
+	processNode(pRootNode, scene, scene->mRootNode, nullptr);
+
+	return prefab;
 }
 
-void Model::processNode(aiNode* node, const aiScene* scene) {
-	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-		aiMesh* meshId = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(processMesh(meshId, scene));
+void Model::processNode(Core::PrefabNode* pNode, const aiScene* scene, aiNode* node, aiMesh* meshId) {
+	if (meshId) {
+		auto mesh = processMesh(scene, meshId);
+		MeshComponent* meshC = new MeshComponent();
+		meshC->mesh = mesh;
+		pNode->components.push_back(meshC);
 	}
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
-		processNode(node->mChildren[i], scene);
+
+	if (node) {
+		pNode->matrix = convertAiMatrix(node->mTransformation);
+
+		for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
+			aiMesh* meshId = scene->mMeshes[node->mMeshes[i]];
+
+			auto childNode = new Core::PrefabNode();
+			pNode->children.push_back(childNode);
+			processNode(childNode, scene, nullptr, meshId);
+		}
+
+		for (unsigned int i = 0; i < node->mNumChildren; ++i) {
+			auto childNode = new Core::PrefabNode();
+			pNode->children.push_back(childNode);
+			processNode(childNode, scene, node->mChildren[i], nullptr);
+		}
 	}
 }
 
-Mesh Model::processMesh(aiMesh* meshId, const aiScene* scene) {
-	// data to fill
+Core::ResourceHandle<Mesh> Model::processMesh(const aiScene* scene, aiMesh* meshId) {
 	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
-	std::vector<Texture> textures;
+	Texture temp;
+	TextureArray textures;
 
-	// Walk through each of the mesh's vertices
-	for (unsigned int i = 0; i < meshId->mNumVertices; i++)
-	{
+	// Fill vertices
+	for (unsigned int i = 0; i < meshId->mNumVertices; i++) {
 		Vertex vertex;
-		glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
-		// positions
-		vector.x = meshId->mVertices[i].x;
-		vector.y = meshId->mVertices[i].y;
-		vector.z = meshId->mVertices[i].z;
-		vertex.Position = vector;
-		// normals
-		vector.x = meshId->mNormals[i].x;
-		vector.y = meshId->mNormals[i].y;
-		vector.z = meshId->mNormals[i].z;
-		vertex.Normal = vector;
-		// texture coordinates
-		if (meshId->mTextureCoords[0]) // does the mesh contain texture coordinates?
-		{
-			glm::vec2 vec;
-			// a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
-			// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
-			vec.x = meshId->mTextureCoords[0][i].x;
-			vec.y = meshId->mTextureCoords[0][i].y;
-			vertex.TexCoords = vec;
+
+		vertex.position = convertAiVec3(meshId->mVertices[i]);
+		vertex.normal = convertAiVec3(meshId->mNormals[i]);
+
+		if (meshId->mTextureCoords[0]) {
+			vertex.texCoords = convertAiVec3(meshId->mTextureCoords[0][i]);
 		}
 		else {
-			vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+			vertex.texCoords = glm::vec2(0.0f, 0.0f);
 		}
-		// tangent
-		vector.x = 0/*mesh->mTangents[i].x*/;
-		vector.y = 0/*mesh->mTangents[i].y*/;
-		vector.z = 0/*mesh->mTangents[i].z*/;
-		vertex.Tangent = vector;
-		// bitangent
-		vector.x = 0/*mesh->mBitangents[i].x*/;
-		vector.y = 0/*mesh->mBitangents[i].y*/;
-		vector.z = 0/*mesh->mBitangents[i].z*/;
-		vertex.Bitangent = vector;
+		
+		vertex.tangent = convertAiVec3(meshId->mTangents[i]);
+		vertex.bitangent = convertAiVec3(meshId->mBitangents[i]);
+
 		vertices.push_back(vertex);
 	}
-	// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-	for (unsigned int i = 0; i < meshId->mNumFaces; i++)
-	{
+	
+	// Fill indices
+	for (unsigned int i = 0; i < meshId->mNumFaces; i++) {
 		aiFace face = meshId->mFaces[i];
-		// retrieve all indices of the face and store them in the indices vector
-		for (unsigned int j = 0; j < face.mNumIndices; j++)
+		for (unsigned int j = 0; j < face.mNumIndices; j++) {
 			indices.push_back(face.mIndices[j]);
+		}
 	}
-	// process materials
+
 	aiMaterial* material = scene->mMaterials[meshId->mMaterialIndex];
-	// we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-	// as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
-	// Same applies to other texture as the following list summarizes:
-	// diffuse: texture_diffuseN
-	// specular: texture_specularN
-	// normal: texture_normalN
+	unsigned int cur = 0;
+	loadMaterialTextures(textures, cur, material, aiTextureType_DIFFUSE);
+	loadMaterialTextures(textures, cur, material, aiTextureType_SPECULAR);
+	loadMaterialTextures(textures, cur, material, aiTextureType_HEIGHT);
+	loadMaterialTextures(textures, cur, material, aiTextureType_AMBIENT);
 
-	// 1. diffuse maps
-	std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-	// 2. specular maps
-	std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-	// 3. normal maps
-	std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-	// 4. height maps
-	std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-	// return a mesh object created from the extracted mesh data
-	return Mesh(vertices, indices, textures);
+	DynamicMesh dmesh(vertices, indices, textures);
+	auto handle = Core::ResourceManager::getInstance().allocate<Mesh>();
+	auto mesh = dmesh.glBind();
+	*handle = mesh;
+	return handle;
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
-	std::vector<Texture> textures;
-	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+void Model::loadMaterialTextures(TextureArray& textures, unsigned int& cur, aiMaterial* mat, aiTextureType type) {
+	for (unsigned int i = 0; i < mat->GetTextureCount(type) && cur < TEXTURES_PER_MESH; ++i) {
 		aiString str;
 		mat->GetTexture(type, i, &str);
 
-		bool skip = false;
-		for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-			if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
-				textures.push_back(textures_loaded[j]);
-				skip = true;
-				break;
-			}
-		}
-		if (!skip) {
-			Texture texture;
-			texture.id = textureFromFile(str.C_Str(), this->directory);
-			texture.type = typeName;
-			texture.path = str.C_Str();
-			textures.push_back(texture);
-			textures_loaded.push_back(texture);
-		}
+		Texture texture;
+		texture.id = textureFromFile(str.C_Str(), this->m_directory, m_gammaCorrection);
+		texture.type = convertAiTextureType(type);
+		textures[cur] = texture;
+
+		++cur;
 	}
-	return textures;
 }
 
 unsigned int textureFromFile(const char* path, const std::string& directory, bool gamma) {
@@ -187,4 +188,4 @@ unsigned int textureFromFile(const char* path, const std::string& directory, boo
 
 	return textureID;
 }
-}}
+}

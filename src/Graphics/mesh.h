@@ -2,41 +2,18 @@
 #ifndef GRAPHICS_MESH_H
 #define GRAPHICS_MESH_H
 
-#include "shader.h"
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <string>
-#include <vector>
+#include "texture.h"
+#include <array>
 
 namespace TEngine::Graphics {
 
-struct Vertex {
-	glm::vec3 Position;
-	glm::vec3 Normal;
-	glm::vec2 TexCoords;
-	glm::vec3 Tangent;
-	glm::vec3 Bitangent;
-};
+constexpr static size_t TEXTURES_PER_MESH = 16;
+using TextureArray = std::array<Texture, TEXTURES_PER_MESH>;
 
-struct Texture {
-	unsigned int id;
-	std::string type;
-	std::string path;
-};
-
-class Mesh {
-public:
-	std::vector<Vertex> vertices;
-	std::vector<unsigned int> indices;
-	std::vector<Texture> textures;
-	unsigned int VAO;
-private:
-	unsigned int m_VBO, m_EBO;
-public:
-	Mesh(std::vector<Vertex>, std::vector<unsigned int>, std::vector<Texture>);
-	void draw(const Shader&);
-private:
-	void setupMesh();
+struct Mesh {
+	unsigned int VAO = 0;
+	size_t numIndices = 0;
+	TextureArray textures;
 };
 }
 #endif
