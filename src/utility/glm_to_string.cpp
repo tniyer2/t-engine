@@ -5,8 +5,6 @@
 #include <iomanip>
 #include <ios>
 
-namespace TEngine::Utility {
-
 std::string fts(float a) {
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(2) << a;
@@ -35,5 +33,4 @@ std::string to_string(glm::mat4 m) {
 		to_string(m[1]) + SEP +
 		to_string(m[2]) + SEP +
 		to_string(m[3]) + END;
-}
 }

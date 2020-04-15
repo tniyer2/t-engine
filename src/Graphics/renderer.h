@@ -45,8 +45,8 @@ public:
 		return m_data->window;
 	}
 
-	void startUp() override;
-	void shutDown() override;
+	void startUp();
+	void shutDown();
 	void update(float);
 };
 }

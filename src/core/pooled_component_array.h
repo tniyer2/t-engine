@@ -26,15 +26,20 @@ public:
 	}
 
 	ComponentHandle<T> getComponent(entity id) const override {
-		return ComponentHandle<T>(m_allocator, id);
+		if (m_allocator.has(id)) {
+			return ComponentHandle<T>(m_allocator, id);
+		}
+		else {
+			return ComponentHandle<T>::invalid();
+		}
 	}
 
-	std::unique_ptr<UntypedComponentIterator> untypedBegin() override {
-		return std::unique_ptr<UntypedComponentIterator>(_begin());
+	std::unique_ptr<IComponentIterator> untypedBegin() const override {
+		return std::unique_ptr<IComponentIterator>(_begin());
 	}
 
-	std::unique_ptr<IComponentIterator<T>> begin() override {
-		return std::unique_ptr<IComponentIterator<T>>(_begin());
+	std::unique_ptr<TComponentIterator<T>> begin() const override {
+		return std::unique_ptr<TComponentIterator<T>>(_begin());
 	}
 
 	ComponentHandle<T> addComponent(entity id) override {
@@ -66,7 +71,7 @@ protected:
 		}
 	}
 private:
-	IComponentIterator<T>* _begin() const {
+	TComponentIterator<T>* _begin() const {
 		return new Iterator(m_allocator.begin());
 	}
 };

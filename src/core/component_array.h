@@ -9,25 +9,37 @@
 
 namespace TEngine::Core {
 
-class UntypedComponentArray {
+class BaseComponentArray {
 public:
-	virtual ~UntypedComponentArray() { };
+	virtual ~BaseComponentArray() { };
 
 	virtual size_t getCount() const = 0;
 	virtual bool hasComponent(entity) const = 0;
+	virtual std::unique_ptr<IComponentIterator> untypedBegin() const = 0;
+};
 
-	virtual std::unique_ptr<UntypedComponentIterator> untypedBegin() = 0;
+class ShrinkableComponentArray : public BaseComponentArray {
+public:
 	virtual void removeComponent(entity) = 0;
 	virtual bool removeIfComponent(entity) = 0;
 };
 
 template<class T>
-class IComponentArray : public UntypedComponentArray {
+class TComponentArray : public BaseComponentArray {
 public:
 	virtual ComponentHandle<T> getComponent(entity) const = 0;
+	virtual std::unique_ptr<TComponentIterator<T>> begin() const = 0;
+};
 
-	virtual std::unique_ptr<IComponentIterator<T>> begin() = 0;
+template<class T>
+class GrowableComponentArray : public TComponentArray<T> {
+public:
 	virtual ComponentHandle<T> addComponent(entity) = 0;
 };
+
+template<class T>
+class IComponentArray :
+	public GrowableComponentArray<T>,
+	public ShrinkableComponentArray { };
 }
 #endif

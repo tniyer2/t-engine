@@ -18,6 +18,8 @@ public:
 
 	using SubSystem<EntityManager>::SubSystem;
 
+	void startUp() { SubSystem<EntityManager>::toggleStartUp(); }
+	void shutDown() { SubSystem<EntityManager>::toggleShutDown(); }
 	void update(float);
 
 	entity create();

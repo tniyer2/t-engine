@@ -5,9 +5,6 @@
 #include <glm/glm.hpp>
 #include <string>
 
-namespace TEngine::Utility {
-
-	std::string to_string(glm::vec4);
-	std::string to_string(glm::mat4);
-}
+std::string to_string(glm::vec4);
+std::string to_string(glm::mat4);
 #endif

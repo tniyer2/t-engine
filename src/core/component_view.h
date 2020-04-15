@@ -14,12 +14,12 @@ namespace TEngine::Core {
 
 template<class ...Ts>
 struct ComponentView {
-	using Arrays = std::array<UntypedComponentArray*, sizeof...(Ts)>;
+	using Arrays = std::array<BaseComponentArray*, sizeof...(Ts)>;
 	using TypedArrays = std::tuple<IComponentArray<Ts>*...>;
 private:
 	Arrays m_arrays;
 	TypedArrays m_typedArrays;
-	UntypedComponentIterator* m_it = nullptr;
+	IComponentIterator* m_it = nullptr;
 	const unsigned int m_shortestIndex = 0;
 
 	ComponentView(ComponentManager& m)

@@ -35,10 +35,6 @@ public:
 	}
 };
 
-auto makeTransform() {
-	return create<Transform>(create<entity>());
-}
-
 void userLogic() {
 	Graphics::Shader::defaultShader = Graphics::Shader::loadShader(
 		"shaders/shader.vs", "shaders/shader.fs");

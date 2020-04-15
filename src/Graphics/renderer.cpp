@@ -3,13 +3,14 @@
 
 #include "depth_first_transform_iterator.h"
 #include "core/component_manager.h"
-#include "utility/glm_to_string.h"
+
+#include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace TEngine::Graphics {
 
 void Renderer::startUp() {
-	SubSystem<Renderer>::startUp();
+	SubSystem<Renderer>::toggleStartUp();
 
 	m_data = new RendererData(Core::RootAllocator::getInstance());
 	m_data->meshAllocator.reserve(100);
@@ -28,7 +29,10 @@ void Renderer::startUp() {
 }
 
 void Renderer::shutDown() {
-	SubSystem<Renderer>::shutDown();
+	SubSystem<Renderer>::toggleShutDown();
+	m_data->cameraAllocator.freeAllPools();
+	m_data->transformAllocator.freeAllPools();
+	m_data->meshAllocator.freeAllPools();
 	delete m_data;
 }
 
@@ -39,6 +43,11 @@ void Renderer::update(float deltaTime) {
 	float width = (float)window.getWidth();
 	float height = (float)window.getHeight();
 	
+	glm::vec3 position = { 0, 0, 3.0f };
+	glm::vec3 front = { 0, 0, -1.0f };
+	glm::vec3 up = { 0, 1.0f, 0 };
+	glm::mat4 view = glm::lookAt(position, position + front, up);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	auto it = DepthFirstTransformIterator(Transform::getRoot());
@@ -56,15 +65,7 @@ void Renderer::update(float deltaTime) {
 			shader = Shader::defaultShader;
 		}
 
-		// std::cout << "matrix:\n" << Utility::to_string(it->getWorldMatrix()) << "\n";
-		// std::cout << "id: " << mesh->mesh->VAO << "\n";
-
 		shader->use();
-
-		glm::vec3 position = { 0, 0, 3.0f };
-		glm::vec3 front = { 0, 0, -1.0f };
-		glm::vec3 up = { 0, 1.0f, 0 };
-		glm::mat4 view = glm::lookAt(position, position + front, up);
 
 		glm::mat4 projection = m_camera.getPerspectiveMatrix(width, height);
 		shader->setMat4("projection", projection);

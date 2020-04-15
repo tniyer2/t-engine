@@ -9,7 +9,7 @@
 
 namespace TEngine::Graphics {
 
-class DepthFirstTransformIterator : public Core::IComponentIterator<Transform> {
+class DepthFirstTransformIterator : public Core::TComponentIterator<Transform> {
 private:
 	constexpr static const char* FINISHED = "Invalid Call. Iterator is finished.";
 
@@ -19,7 +19,7 @@ public:
 	DepthFirstTransformIterator(ComponentHandle<Transform> start)
 		: m_start(start), m_cur(start) { }
 
-	UntypedComponentIterator& operator++() override {
+	IComponentIterator& operator++() override {
 		increment<true>();
 		return *this;
 	}
@@ -40,6 +40,12 @@ public:
 	}
 	Transform& operator*() override {
 		return const_cast<Transform&>(static_cast<const DepthFirstTransformIterator&>(*this).operator*());
+	}
+
+	bool operator==(const IComponentIterator& other) const override {
+		auto derived = dynamic_cast<const DepthFirstTransformIterator*>(&other);
+		if (!derived) return false;
+		else return m_start == derived->m_start && m_cur == derived->m_cur;
 	}
 private:
 	template<bool iterateDown>

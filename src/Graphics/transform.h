@@ -36,7 +36,7 @@ public:
 
 	using TComponent<Transform>::TComponent;
 
-	entity instantiate(entity) override;
+	void instantiate(entity) override;
 
 	glm::mat4 getLocalMatrix() const { return m_matrix; }
 	glm::mat4 getWorldMatrix() const { return m_computed; }

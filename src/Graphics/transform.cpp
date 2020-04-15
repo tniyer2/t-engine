@@ -7,7 +7,7 @@
 
 namespace TEngine::Graphics {
 
-entity Transform::instantiate(entity baseId) {
+void Transform::instantiate(entity) {
 	throw "Instantiating Transform Component is unsupported.";
 }
 

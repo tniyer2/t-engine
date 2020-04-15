@@ -59,7 +59,7 @@ private:
 	std::map<int, int> m_glfwToKey; // maps GLFW key codes to contiguous key codes.
 	std::map<std::string, int> m_textToKey; // maps strings to contiguous key codes.
 
-	std::array<int, 98> m_keys; // maps keycode to index in m_keyEvents.
+	std::array<unsigned int, 98> m_keys; // maps keycode to index in m_keyEvents.
 	std::vector<KeyEvent> m_keyEvents; // current KeyEvents
 	MouseEvent m_mouseEvent; // current MouseEvent
 	ScrollEvent m_scrollEvent; // current ScrollEvent

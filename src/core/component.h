@@ -11,27 +11,24 @@ class IComponent {
 public:
 	Core::ReadOnlyProperty<entity> entityId;
 
-	IComponent() { }
+	IComponent() { } // exists so serialization works.
 	IComponent(entity id) : entityId(id) { }
 	virtual ~IComponent() { }
 
-	virtual entity instantiate(entity) = 0;
+	virtual void instantiate(entity) = 0;
 };
 
-template<class T>
+template<class Derived>
 class TComponent : public IComponent {
 public:
 	using IComponent::IComponent;
 
-	entity instantiate(entity newId) override {
-		_instantiate(newId);
-		return newId;
-	}
+	void instantiate(entity id) override { _instantiate(id); }
 protected:
-	virtual ComponentHandle<T> _instantiate(entity newId) {
-		auto handle = create<T>(newId);
-		*handle = (T&)*this;
-		handle->entityId = ReadOnlyProperty<entity>(newId);
+	virtual ComponentHandle<Derived> _instantiate(entity id) {
+		auto handle = create<Derived>(id);
+		*handle = (Derived&)*this;
+		handle->entityId = ReadOnlyProperty<entity>(id);
 		return handle;
 	}
 };

@@ -4,7 +4,7 @@
 namespace TEngine::Core {
 
 void ScriptManager::shutDown() {
-	SubSystem<ScriptManager>::shutDown();
+	SubSystem<ScriptManager>::toggleShutDown();
 
 	for (auto it = m_allScripts.begin(); it != m_allScripts.end(); ++it) {
 		delete it->second;

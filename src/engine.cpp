@@ -4,7 +4,7 @@
 namespace TEngine::Core {
 
 void Engine::startUp() {
-	SubSystem<Engine>::startUp();
+	SubSystem<Engine>::toggleStartUp();
 
 	gRootAllocator.startUp();
 	gResourceManager.startUp();
@@ -15,7 +15,7 @@ void Engine::startUp() {
 }
 
 void Engine::shutDown() {
-	SubSystem<Engine>::shutDown();
+	SubSystem<Engine>::toggleShutDown();
 
 	gRenderer.shutDown();
 	gEntityManager.shutDown();

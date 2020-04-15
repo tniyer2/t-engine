@@ -4,20 +4,19 @@
 
 #include "component_allocator.h"
 #include "entity.h"
-#include <cassert>
 
 namespace TEngine::Core {
 
 template<class T>
 class ComponentHandle {
 private:
-	IComponentAllocator<T>* m_allocator = nullptr;
+	TComponentAllocator<T>* m_allocator = nullptr;
 	entity m_entity;
 public:
 	static ComponentHandle invalid() { return ComponentHandle(); }
 
 	ComponentHandle() { }
-	ComponentHandle(IComponentAllocator<T>& allocator, entity id)
+	ComponentHandle(TComponentAllocator<T>& allocator, entity id)
 		: m_allocator(&allocator), m_entity(id) { }
 
 	explicit operator bool() const {
@@ -42,7 +41,7 @@ public:
 	}
 
 	friend bool operator==(ComponentHandle a, ComponentHandle b) {
-		return (a.m_allocator == b.m_allocator) && (a.m_entity == b.m_entity);
+		return a.m_allocator == b.m_allocator && a.m_entity == b.m_entity;
 	}
 };
 }

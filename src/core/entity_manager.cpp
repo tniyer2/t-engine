@@ -28,7 +28,7 @@ entity EntityManager::create() {
 
 void EntityManager::destroy(entity id) {
 	checkRunning();
-	if ((unsigned int)id >= EntityManager::entityIdCounter) {
+	if ((unsigned int)id >= (unsigned int)EntityManager::entityIdCounter) {
 		throw "Invalid Argument.";
 	}
 	m_toBeDestroyed[id] = true;

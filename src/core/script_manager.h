@@ -20,8 +20,9 @@ public:
 
 	using SubSystem<ScriptManager>::SubSystem;
 
-	void shutDown() override;
-	void update(float); // Awake(s) new scripts and Update(s) all scripts.
+	void startUp() { SubSystem<ScriptManager>::toggleStartUp(); }
+	void shutDown();
+	void update(float);
 
 	bool hasScript(entity) const;
 	Script* getScript(entity) const;

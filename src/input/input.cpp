@@ -12,7 +12,7 @@ std::array<int, 31> KEY_RANGES = {
 };
 
 std::array<std::string, 98> KEY_TEXTS = {
-	"unknown", "\s", "'", ",", "-", ".", "/",
+	"unknown", " ", "'", ",", "-", ".", "/",
 	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 	";", "=",
 	"a", "b", "c", "d", "e", "f",
@@ -36,7 +36,7 @@ std::map<int, int> get_key_translations() {
 	std::map<int, int> translations;
 	translations[-1] = 0;
 	int count = 1;
-	int length = KEY_RANGES.size();
+	size_t length = KEY_RANGES.size();
 
 	for (unsigned int i = 0; i < length; ++i) {
 		int key = KEY_RANGES[i];
@@ -100,7 +100,7 @@ void Input::pushKeyEvent(int glfwKey, int scancode, int action, int mods) {
 	KeyEvent e(key, state, mods, text);
 
 	m_keyEvents.push_back(e);
-	m_keys[key] = m_keyEvents.size() - 1;
+	m_keys[key] = (unsigned int)m_keyEvents.size() - 1;
 }
 
 void Input::pushMouseButtonEvent(int button, int action, int mods) {

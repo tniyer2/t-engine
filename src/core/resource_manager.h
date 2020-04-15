@@ -19,8 +19,8 @@ public:
 
 	ResourceManager() : m_allocator(RootAllocator::getInstance()) { }
 
-	void startUp() override;
-	void shutDown() override;
+	void startUp();
+	void shutDown();
 
 	template<class T>
 	ResourceHandle<T> allocate() {

@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
@@ -22,6 +18,13 @@
     <Filter Include="Header Files\Input">
       <UniqueIdentifier>{ce3ea726-c428-4b7d-9459-53e1bad68a98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Graphics">
+      <UniqueIdentifier>{971bba21-b425-496c-9691-850b769c0baf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{71254c2f-04b5-45e5-bd6a-a5c3297f7bb5}</UniqueIdentifier>
     </Filter>
@@ -34,9 +37,6 @@
     <Filter Include="Source Files\Utility">
       <UniqueIdentifier>{e6f24f0c-a1e8-4a00-8a9c-94a4989ad907}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Graphics">
-      <UniqueIdentifier>{971bba21-b425-496c-9691-850b769c0baf}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -47,9 +47,6 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\camera.cpp">
       <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\engine.cpp">
-      <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\entity_manager.cpp">
       <Filter>Source Files\Core</Filter>
@@ -90,9 +87,6 @@
     <ClCompile Include="src\core\linear_allocator.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\utility\boolean.cpp">
-      <Filter>Source Files\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="src\core\core.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
@@ -111,14 +105,17 @@
     <ClCompile Include="src\graphics\mesh_component.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="src\utility\boolean.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
     <ClCompile Include="src\graphics\vertex.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\utility\boolean.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\camera.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -129,9 +126,6 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\pooled_component_allocator.h">
-      <Filter>Header Files\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\engine.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\entity.h">
@@ -241,6 +235,12 @@
     </ClInclude>
     <ClInclude Include="src\graphics\vertex.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utility\boolean.h">
+      <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

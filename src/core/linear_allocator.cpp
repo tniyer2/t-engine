@@ -1,15 +1,14 @@
 
 #include "linear_allocator.h"
 
-#include "../utility/boolean.h"
 #include <cstring>
 #include <cassert>
 
 namespace TEngine::Core {
 
 void LinearAllocator::reserve(size_t size) {
-	if (!Utility::toggle<true>(m_running)) {
-		throw "Invalid Call. LinearAllocator is already running.";
+	if (m_reserved) {
+		throw "Invalid Call. Memory already reserved.";
 	}
 
 	size = align(size);
@@ -21,19 +20,26 @@ void LinearAllocator::reserve(size_t size) {
 	m_basePtr = ptr;
 	m_topPtr = ptr;
 	m_capacity = size;
+	m_reserved = true;
 }
 
 void LinearAllocator::freeAll() {
-	if (!Utility::toggle<false>(m_running)) {
-		throw "Invalid Call. LinearAllocator is not running.";
+	if (!m_reserved) {
+		throw "Invalid Call. No memory reserved to free.";
 	}
+
 	m_allocator.free(m_basePtr);
+	m_reserved = false;
+}
+
+void LinearAllocator::checkRunning() const {
+	if (!m_reserved) {
+		throw "Invalid Call. Memory not reserved.";
+	}
 }
 
 void* LinearAllocator::allocate(size_t size) {
-	if (!m_running) {
-		throw "Invalid Call. LinearAllocator is not running.";
-	}
+	checkRunning();
 
 	size = align(size);
 	if (size > getAvailable()) return nullptr;
@@ -44,9 +50,7 @@ void* LinearAllocator::allocate(size_t size) {
 }
 
 void LinearAllocator::clear() {
-	if (!m_running) {
-		throw "Invalid Call. LinearAllocator is not running.";
-	}
+	checkRunning();
 
 	std::memset(m_basePtr, 0, m_capacity);
 	m_topPtr = m_basePtr;

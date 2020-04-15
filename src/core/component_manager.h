@@ -16,11 +16,14 @@ namespace TEngine::Core {
 class ComponentManager : public SubSystem<ComponentManager> {
 private:
 	inline static std::atomic_int typeIdCounter = std::atomic_int(1);
-	std::vector<UntypedComponentArray*> m_arrays;
+	std::vector<ShrinkableComponentArray*> m_arrays;
 public:
 	static std::string typeName() { return "Core::ComponentManager"; }
 
 	using SubSystem<ComponentManager>::SubSystem;
+
+	void startUp() { SubSystem<ComponentManager>::toggleStartUp(); }
+	void shutDown() { SubSystem<ComponentManager>::toggleShutDown(); }
 
 	template<class T>
 	IComponentArray<T>& getComponentArray() const {

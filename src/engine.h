@@ -3,11 +3,11 @@
 #define CORE_ENGINE_H
 
 #include "graphics/renderer.h"
-#include "graphics/window.h"
 #include "core/entity_manager.h"
-#include "core/component_manager.h"
 #include "core/script_manager.h"
+#include "core/component_manager.h"
 #include "core/resource_manager.h"
+#include "core/memory.h"
 #include "core/subsystem.h"
 #include "utility/timer.h"
 #include <string>
@@ -27,8 +27,8 @@ private:
 public:
 	static std::string typeName() { return "Core::Engine"; }
 
-	void startUp() override;
-	void shutDown() override;
+	void startUp();
+	void shutDown();
 	void runGameLoop();
 };
 }

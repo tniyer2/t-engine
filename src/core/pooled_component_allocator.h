@@ -1,18 +1,17 @@
 
-#ifndef CORE_COMPONENT_POOL_H
-#define CORE_COMPONENT_POOL_H
+#ifndef CORE_POOLED_COMPONENT_ALLOCATOR_H
+#define CORE_POOLED_COMPONENT_ALLOCATOR_H
 
 #include "component_allocator.h"
 #include "component_iterator.h"
 #include "entity.h"
-#include "utility/boolean.h"
 #include <variant>
 #include <cassert>
 
 namespace TEngine::Core {
 
 template<class T>
-class PooledComponentAllocator : public IComponentAllocator<T> {
+class PooledComponentAllocator : public TComponentAllocator<T> {
 private:
 	using index_t = unsigned short;
 	constexpr static index_t INVALID_INDEX = (index_t)-1;
@@ -458,17 +457,19 @@ private:
 		Pool& operator*() {
 			return const_cast<Pool&>(static_cast<const PoolIterator&>(*this).operator*());
 		}
+
+		friend bool operator==(PoolIterator a, PoolIterator b) {
+			return &a.m_allocator == &b.m_allocator && a.m_pool == b.m_pool;
+		}
 	};
 public:
-	class PooledComponentIterator : public IComponentIterator<T> {
+	class PooledComponentIterator : public TComponentIterator<T> {
 	private:
-		PooledComponentAllocator& m_allocator;
 		PoolIterator m_poolIt;
 		index_t m_index = INVALID_INDEX;
 	public:
-		PooledComponentIterator(
-			PooledComponentAllocator& allocator, PoolIterator poolIt, index_t index)
-			: m_allocator(allocator), m_poolIt(poolIt), m_index(index) {
+		PooledComponentIterator(PoolIterator poolIt, index_t index)
+			: m_poolIt(poolIt), m_index(index) {
 			if (m_poolIt) operator++();
 		}
 
@@ -510,20 +511,25 @@ public:
 		T& operator*() override {
 			return const_cast<T&>(static_cast<const PooledComponentIterator&>(*this).operator*());
 		}
+
+		bool operator==(const IComponentIterator& other) const override {
+			auto derived = dynamic_cast<const PooledComponentIterator*>(&other);
+			if (!derived) return false;
+			else return
+				m_poolIt == derived->m_poolIt &&
+				m_index == derived->m_index;
+		}
 	};
 private:
-	using IComponentAllocator<T>::m_allocator;
-	using IComponentAllocator<T>::m_count;
+	using TComponentAllocator<T>::m_allocator;
+	using TComponentAllocator<T>::m_count;
 
 	Pool* m_poolStart = nullptr;
 	Pool* m_poolEnd = nullptr;
-	bool m_running = true;
 public:
-	using IComponentAllocator<T>::IComponentAllocator;
+	using TComponentAllocator<T>::TComponentAllocator;
 
 	bool reserve(index_t m_numBlocks) {
-		assert(m_running);
-		if (!m_running) return false;
 		if (m_numBlocks == 0 || m_numBlocks == INVALID_INDEX) return false;
 
 		size_t sHeader = align(sizeof(Pool));
@@ -554,8 +560,6 @@ public:
 	}
 
 	bool has(entity handle) const override {
-		assert(m_running);
-		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
 
 		for (auto it = poolBegin(); it; ++it) {
@@ -565,8 +569,6 @@ public:
 	}
 
 	T* get(entity handle) const override {
-		assert(m_running);
-		if (!m_running) return nullptr;
 		if (handle == entity::invalid()) return nullptr;
 
 		for (auto it = poolBegin(); it; ++it) {
@@ -577,8 +579,6 @@ public:
 	}
 
 	bool allocate(entity handle) override {
-		assert(m_running);
-		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
 
 		for (auto it = poolBegin(); it; ++it) {
@@ -591,8 +591,6 @@ public:
 	}
 
 	bool free(entity handle) override {
-		assert(m_running);
-		if (!m_running) return false;
 		if (handle == entity::invalid()) return false;
 
 		for (auto it = poolBegin(); it; ++it) {
@@ -604,9 +602,7 @@ public:
 		return false;
 	}
 
-	void shutDown() {
-		if (!Utility::toggle<false>(m_running)) return;
-
+	void freeAllPools() {
 		for (auto it = poolBegin(); it; ++it) {
 			Pool* pool = &*it;
 			pool->~Pool();
@@ -616,7 +612,7 @@ public:
 	}
 
 	PooledComponentIterator begin() {
-		return PooledComponentIterator(*this, poolBegin(), INVALID_INDEX);
+		return PooledComponentIterator(poolBegin(), INVALID_INDEX);
 	}
 private:
 	PoolIterator poolBegin() const {
