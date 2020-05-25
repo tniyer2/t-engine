@@ -2,7 +2,7 @@
 #ifndef GRAPHICS_TRANSFORM_COMPONENT_H
 #define GRAPHICS_TRANSFORM_COMPONENT_H
 
-#include "core/component.h"
+#include "core/typed_component_interface.h"
 #include "core/component_handle.h"
 #include "core/entity.h"
 #include <glm/glm.hpp>
@@ -12,7 +12,7 @@ namespace TEngine::Graphics {
 using Core::ComponentHandle;
 using Core::entity;
 
-class Transform : public Core::TComponent<Transform> {
+class Transform : public Core::TypedComponentInterface<Transform> {
 	using index_t = unsigned int;
 
 	friend class TransformComponentArray;
@@ -34,7 +34,7 @@ private:
 public:
 	static ComponentHandle<Transform> getRoot() { return m_rootTransform; }
 
-	using TComponent<Transform>::TComponent;
+	using TypedComponentInterface<Transform>::TypedComponentInterface;
 
 	void instantiate(entity) override;
 

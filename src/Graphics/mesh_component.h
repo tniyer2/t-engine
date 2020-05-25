@@ -5,16 +5,16 @@
 #include "mesh.h"
 #include "shader.h"
 #include "core/resource_handle.h"
-#include "core/component.h"
+#include "core/typed_component_interface.h"
 
 namespace TEngine::Graphics {
 
-class MeshComponent : public Core::TComponent<MeshComponent> {
+class MeshComponent : public Core::TypedComponentInterface<MeshComponent> {
 public:
 	Core::ResourceHandle<Mesh> mesh;
 	Core::ResourceHandle<Shader> shader;
 
-	using TComponent<MeshComponent>::TComponent;
+	using TypedComponentInterface<MeshComponent>::TypedComponentInterface;
 
 	void draw(Core::ResourceHandle<Shader>);
 };

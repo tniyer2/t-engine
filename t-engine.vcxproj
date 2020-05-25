@@ -158,7 +158,7 @@
   <ItemGroup>
     <ClInclude Include="read_only_property.h" />
     <ClInclude Include="include\stb_image.h" />
-    <ClInclude Include="src\core\component.h" />
+    <ClInclude Include="src\core\component_interface.h" />
     <ClInclude Include="src\core\component_iterator.h" />
     <ClInclude Include="src\core\component_allocator.h" />
     <ClInclude Include="src\core\component_array.h" />
@@ -179,6 +179,7 @@
     <ClInclude Include="src\core\script_manager.h" />
     <ClInclude Include="src\core\subsystem.h" />
     <ClInclude Include="src\core\linear_allocator.h" />
+    <ClInclude Include="src\core\typed_component_interface.h" />
     <ClInclude Include="src\engine.h" />
     <ClInclude Include="src\Graphics\camera.h" />
     <ClInclude Include="src\Graphics\dynamic_mesh.h" />

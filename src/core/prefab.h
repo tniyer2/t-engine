@@ -4,7 +4,7 @@
 
 #include "graphics/transform.h"
 #include "component_handle.h"
-#include "component.h"
+#include "typed_component_interface.h"
 #include "entity.h"
 #include <vector>
 #include <glm/glm.hpp>
@@ -16,7 +16,7 @@ using Graphics::Transform;
 struct PrefabNode {
 	PrefabNode* parent = nullptr;
 	std::vector<PrefabNode*> children;
-	std::vector<IComponent*> components;
+	std::vector<ComponentInterface*> components;
 	glm::mat4 matrix;
 
 	entity instantiate(ComponentHandle<Transform>);
