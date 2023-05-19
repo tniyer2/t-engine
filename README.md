@@ -1,2 +1,9 @@
 # t-engine
-A game engine optimized for 3d open world games on pc and console.
+A basic game engine written in C++.
+
+Dependencies
+===
+Requires glm.
+Requires GLFW.
+Requires GLAD.
+Requires assimp v3.1.1.
